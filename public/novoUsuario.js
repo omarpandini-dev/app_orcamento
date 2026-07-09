@@ -10,10 +10,13 @@ if (!sessionRaw) {
   const session = JSON.parse(sessionRaw);
   const firstName = session.profile?.name?.split(' ')[0] || 'Usuario';
   newUserMessage.textContent = `${firstName}, seu primeiro acesso foi identificado. Escolha uma opcao para continuar no Orçamento Já.`;
+    
+    console.log( session.profile?.sub );
 }
 
+
 createBudgetButton.addEventListener('click', () => {
-  window.alert('Fluxo "Criar Orçamento" ainda sera implementado.');
+  window.location.href = '/criarGrupo.html';
 });
 
 joinGroupButton.addEventListener('click', () => {

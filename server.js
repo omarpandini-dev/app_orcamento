@@ -48,6 +48,8 @@ const port = process.env.PORT || 3000;
 const googleClientId = process.env.GOOGLE_CLIENT_ID || '';
 const webhookUrl = process.env.WEBHOOK_URL || '';
 const webhookAuthorization = process.env.WEBHOOK_AUTHORIZATION || '';
+const createGroupWebhookUrl = process.env.CREATE_GROUP_WEBHOOK_URL || '';
+const createGroupWebhookAuthorization = process.env.CREATE_GROUP_WEBHOOK_AUTHORIZATION || '';
 
 const mimeTypes = {
   '.html': 'text/html; charset=utf-8',
@@ -151,6 +153,182 @@ const server = http.createServer((request, response) => {
         const statusCode = error instanceof SyntaxError ? 400 : 500;
         sendJson(response, statusCode, {
           error: statusCode === 400 ? 'JSON invalido.' : 'Erro interno ao processar login Google.'
+        });
+      });
+    return;
+  }
+
+  if (request.method === 'POST' && requestUrl.pathname === '/api/cria-grupo') {
+    readJsonBody(request)
+      .then(async (payload) => {
+        const requiredFields = ['idUsuario', 'nmGrupo'];
+        const missingField = requiredFields.find((field) => !payload[field]);
+
+        if (missingField) {
+          sendJson(response, 400, { error: `Campo obrigatorio ausente: ${missingField}` });
+          return;
+        }
+
+        if (!createGroupWebhookUrl || !createGroupWebhookAuthorization) {
+          sendJson(response, 500, {
+            error: 'CREATE_GROUP_WEBHOOK_URL e CREATE_GROUP_WEBHOOK_AUTHORIZATION precisam estar configurados no servidor.'
+          });
+          return;
+        }
+
+        const webhookResponse = await fetch(createGroupWebhookUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': createGroupWebhookAuthorization
+          },
+          body: JSON.stringify({
+            operacao: 'CRIA_GRUPO',
+            idUsuario: payload.idUsuario,
+            nmGrupo: payload.nmGrupo
+          })
+        });
+
+        const responseText = await webhookResponse.text();
+        let responseData;
+
+        try {
+          responseData = responseText ? JSON.parse(responseText) : null;
+        } catch (error) {
+          responseData = responseText;
+        }
+
+        if (!webhookResponse.ok) {
+          sendJson(response, webhookResponse.status, {
+            error: 'Falha ao criar grupo.',
+            details: responseData
+          });
+          return;
+        }
+
+        sendJson(response, 200, responseData);
+      })
+      .catch((error) => {
+        const statusCode = error instanceof SyntaxError ? 400 : 500;
+        sendJson(response, statusCode, {
+          error: statusCode === 400 ? 'JSON invalido.' : 'Erro interno ao criar grupo.'
+        });
+      });
+    return;
+  }
+
+  if (request.method === 'POST' && requestUrl.pathname === '/api/busca-info-usuario') {
+    readJsonBody(request)
+      .then(async (payload) => {
+        if (!payload.idUsuario) {
+          sendJson(response, 400, { error: 'Campo obrigatorio ausente: idUsuario' });
+          return;
+        }
+
+        if (!createGroupWebhookUrl || !createGroupWebhookAuthorization) {
+          sendJson(response, 500, {
+            error: 'CREATE_GROUP_WEBHOOK_URL e CREATE_GROUP_WEBHOOK_AUTHORIZATION precisam estar configurados no servidor.'
+          });
+          return;
+        }
+
+        const webhookResponse = await fetch(createGroupWebhookUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': createGroupWebhookAuthorization
+          },
+          body: JSON.stringify({
+            operacao: 'BUSCA_INFO_USUARIO',
+            idUsuario: payload.idUsuario
+          })
+        });
+
+        const responseText = await webhookResponse.text();
+        let responseData;
+
+        try {
+          responseData = responseText ? JSON.parse(responseText) : null;
+        } catch (error) {
+          responseData = responseText;
+        }
+
+        if (!webhookResponse.ok) {
+          sendJson(response, webhookResponse.status, {
+            error: 'Falha ao buscar informacoes do usuario.',
+            details: responseData
+          });
+          return;
+        }
+
+        sendJson(response, 200, responseData);
+      })
+      .catch((error) => {
+        const statusCode = error instanceof SyntaxError ? 400 : 500;
+        sendJson(response, statusCode, {
+          error: statusCode === 400 ? 'JSON invalido.' : 'Erro interno ao buscar informacoes do usuario.'
+        });
+      });
+    return;
+  }
+
+  if (request.method === 'POST' && requestUrl.pathname === '/api/cria-orcamento') {
+    readJsonBody(request)
+      .then(async (payload) => {
+        const requiredFields = ['idGrupo', 'idUsuario', 'dsCategoria', 'diaCorte', 'valorMeta'];
+        const missingField = requiredFields.find((field) => !payload[field]);
+
+        if (missingField) {
+          sendJson(response, 400, { error: `Campo obrigatorio ausente: ${missingField}` });
+          return;
+        }
+
+        if (!createGroupWebhookUrl || !createGroupWebhookAuthorization) {
+          sendJson(response, 500, {
+            error: 'CREATE_GROUP_WEBHOOK_URL e CREATE_GROUP_WEBHOOK_AUTHORIZATION precisam estar configurados no servidor.'
+          });
+          return;
+        }
+
+        const webhookResponse = await fetch(createGroupWebhookUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': createGroupWebhookAuthorization
+          },
+          body: JSON.stringify({
+            operacao: 'CRIA_ORCAMENTO',
+            idGrupo: payload.idGrupo,
+            idUsuario: payload.idUsuario,
+            dsCategoria: payload.dsCategoria,
+            diaCorte: payload.diaCorte,
+            valorMeta: payload.valorMeta
+          })
+        });
+
+        const responseText = await webhookResponse.text();
+        let responseData;
+
+        try {
+          responseData = responseText ? JSON.parse(responseText) : null;
+        } catch (error) {
+          responseData = responseText;
+        }
+
+        if (!webhookResponse.ok) {
+          sendJson(response, webhookResponse.status, {
+            error: 'Falha ao criar orcamento.',
+            details: responseData
+          });
+          return;
+        }
+
+        sendJson(response, 200, responseData);
+      })
+      .catch((error) => {
+        const statusCode = error instanceof SyntaxError ? 400 : 500;
+        sendJson(response, statusCode, {
+          error: statusCode === 400 ? 'JSON invalido.' : 'Erro interno ao criar orcamento.'
         });
       });
     return;

@@ -1,0 +1,36 @@
+Para Acessar o googleId
+
+
+const sessionRaw = window.localStorage.getItem('orcamentoJaSession');
+
+if (!sessionRaw) {
+  window.location.href = '/';
+} else {
+  const session = JSON.parse(sessionRaw);
+
+  const googleId = session.profile?.sub;
+
+  console.log(googleId);
+}
+
+//=== Pegando o authData, que é o retorno da api do login
+
+const authData = session.authData;
+
+const idUsuarioNovo = session.authData?.idUsuarioNovo;
+const possuiOrcamentos = session.authData?.idPossuiOrcamentos;
+const categorias = session.authData?.arrCategorias || [];
+
+
+-----
+
+Criar o orçamento, 
+
+quando 
+
+if (!budgets.length) {
+    renderEmptyState(budgetsGrid, 'Nenhum orçamento encontrado para este grupo.');
+    return;
+  }
+
+direcionar para página de criação de orçamentos

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0f172a" />
+    <title>Orçamento Já | Criar Grupo</title>
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" href="/assets/logo.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body class="app-body">
+    <main class="action-shell">
+      <section class="action-card">
+        <img src="/assets/logo.svg" alt="Logo Orçamento Já" class="action-logo" />
+        <p class="eyebrow">Novo grupo</p>
+        <h1 class="page-title">Criar grupo</h1>
+        <p class="hero-copy" id="createGroupMessage">
+          Informe a descrição do grupo para começar seu orçamento compartilhado.
+        </p>
+
+        <form class="group-form" id="createGroupForm">
+          <label for="groupName">Descrição do grupo</label>
+          <div class="group-input-shell">
+            <span class="group-input-icon" aria-hidden="true">#</span>
+            <input
+              type="text"
+              id="groupName"
+              name="groupName"
+              autocomplete="off"
+              required
+              maxlength="120"
+              placeholder="Ex.: Família Silva ; Família Oliveira ; etc."
+            />
+          </div>
+
+          <button type="submit" class="primary-button" id="createGroupButton">Criar</button>
+        </form>
+
+        <p class="api-result" id="createGroupResult" hidden></p>
+
+        <div class="action-buttons action-buttons-compact" id="createGroupActions" hidden>
+          <button type="button" class="ghost-button ghost-button-dark" id="homeButton">Home</button>
+        </div>
+      </section>
+    </main>
+
+    <script src="/criarGrupo.js" defer></script>
+  </body>
+</html>

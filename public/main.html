@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#0f172a" />
-    <title>Orçamento Já | Categorias</title>
+    <title>Orçamento Já | Grupos</title>
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="icon" href="/assets/logo.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="/styles.css" />
@@ -16,12 +16,13 @@
           <img src="/assets/logo.svg" alt="Logo Orçamento Já" class="topbar-logo" />
           <div>
             <p class="eyebrow">Resumo</p>
-            <h1 class="page-title">Suas categorias</h1>
+            <h1 class="page-title">Seus grupos</h1>
           </div>
         </div>
 
         <div class="topbar-actions">
-          <a href="/" class="ghost-link">Início</a>
+          <button type="button" class="ghost-button" id="refreshButton">Atualizar</button>
+          
           <button type="button" class="ghost-button" id="logoutButton">Sair</button>
         </div>
       </header>
@@ -30,13 +31,13 @@
         <article class="hero-card hero-card-main">
           <p class="hero-kicker">Orçamentos ativos</p>
           <h2 id="welcomeTitle">Carregando dados...</h2>
-          <p class="hero-copy" id="welcomeCopy">Estamos organizando suas metas por categoria.</p>
+          <p class="hero-copy" id="welcomeCopy">Buscando seus grupos e orçamentos mais recentes.</p>
         </article>
 
         <article class="hero-card summary-card">
-          <p class="summary-label">Categorias</p>
-          <strong class="summary-value" id="summaryCategories">0</strong>
-          <p class="summary-footnote">metas cadastradas</p>
+          <p class="summary-label">Grupos</p>
+          <strong class="summary-value" id="summaryGroups">0</strong>
+          <p class="summary-footnote">grupos vinculados</p>
         </article>
 
         <article class="hero-card summary-card">
@@ -49,11 +50,21 @@
       <section class="section-header">
         <div>
           <p class="section-kicker">Painel</p>
-          <h2 class="section-title">Categorias do seu orçamento</h2>
+          <h2 class="section-title">Grupos de orçamento</h2>
+        </div>
+        <p class="helper-text" id="lastUpdated">Aguardando atualização.</p>
+      </section>
+
+      <section class="groups-grid" id="groupsGrid"></section>
+
+      <section class="section-header budgets-section-header">
+        <div>
+          <p class="section-kicker">Detalhes</p>
+          <h2 class="section-title" id="selectedGroupTitle">Orçamentos do grupo</h2>
         </div>
       </section>
 
-      <section class="cards-grid" id="categoriesGrid"></section>
+      <section class="cards-grid" id="budgetsGrid"></section>
     </main>
 
     <script src="/main.js" defer></script>

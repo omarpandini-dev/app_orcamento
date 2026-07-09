@@ -81,15 +81,8 @@ async function processGoogleLogin(response) {
 
     window.localStorage.setItem('orcamentoJaSession', JSON.stringify(sessionPayload));
 
-    if (authData.idUsuarioNovo === 'S') {
-      window.location.href = '/novoUsuario.html';
-      return;
-    }
-
-    if (authData.idPossuiOrcamentos === 'S' && authData.idUsuarioNovo === 'N') {
-      window.location.href = '/main.html';
-      return;
-    }
+    window.location.href = '/main.html';
+    return;
 
     googleStatus.textContent = 'Login concluido, mas nenhum fluxo automatico foi definido para esse retorno.';
   } catch (error) {

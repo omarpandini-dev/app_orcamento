@@ -1,10 +1,29 @@
-const sessionRaw = window.localStorage.getItem('orcamentoJaSession');
-const categoriesGrid = document.getElementById('categoriesGrid');
+const groupsGrid = document.getElementById('groupsGrid');
+const budgetsGrid = document.getElementById('budgetsGrid');
 const welcomeTitle = document.getElementById('welcomeTitle');
 const welcomeCopy = document.getElementById('welcomeCopy');
-const summaryCategories = document.getElementById('summaryCategories');
+const summaryGroups = document.getElementById('summaryGroups');
 const summaryTotal = document.getElementById('summaryTotal');
+const selectedGroupTitle = document.getElementById('selectedGroupTitle');
+const lastUpdated = document.getElementById('lastUpdated');
+const refreshButton = document.getElementById('refreshButton');
 const logoutButton = document.getElementById('logoutButton');
+const refreshIntervalMs = 5 * 60 * 1000;
+
+let googleId = '';
+let selectedGroupId = '';
+let refreshTimer = null;
+
+function getLoggedUserGoogleId() {
+  const storedSession = window.localStorage.getItem('orcamentoJaSession');
+
+  if (!storedSession) {
+    return '';
+  }
+
+  const session = JSON.parse(storedSession);
+  return session.profile?.sub || '';
+}
 
 function formatCurrency(value) {
   return new Intl.NumberFormat('pt-BR', {
@@ -13,47 +32,243 @@ function formatCurrency(value) {
   }).format(Number(value) || 0);
 }
 
-function renderEmptyState(message) {
-  categoriesGrid.innerHTML = `<article class="empty-card"><p>${message}</p></article>`;
+function createTextElement(tagName, className, text) {
+  const element = document.createElement(tagName);
+  element.className = className;
+  element.textContent = text;
+  return element;
 }
 
-if (!sessionRaw) {
-  window.location.href = '/';
-} else {
-  const session = JSON.parse(sessionRaw);
-  const categories = session.authData?.arrCategorias || [];
-  const firstName = session.profile?.name?.split(' ')[0] || 'Usuario';
-  const totalValue = categories.reduce((sum, category) => sum + (Number(category.valor_meta) || 0), 0);
+function clearElement(element) {
+  element.replaceChildren();
+}
 
-  welcomeTitle.textContent = `Ola, ${firstName}`;
-  welcomeCopy.textContent = `Voce possui ${categories.length} categoria${categories.length === 1 ? '' : 's'} ativa${categories.length === 1 ? '' : 's'} no momento.`;
-  summaryCategories.textContent = String(categories.length);
+function normalizeUserInfo(result) {
+  const firstItem = Array.isArray(result) ? result[0] : result;
+  return firstItem?.retorno || null;
+}
+
+function getAllBudgets(groups) {
+  return groups.flatMap((group) => group.orcamentos || []);
+}
+
+function renderEmptyState(target, message) {
+  clearElement(target);
+  const card = document.createElement('article');
+  card.className = 'empty-card';
+  card.append(createTextElement('p', '', message));
+  target.append(card);
+}
+
+function renderNoGroupsState() {
+  clearElement(groupsGrid);
+
+  const card = document.createElement('article');
+  card.className = 'empty-card empty-card-action';
+
+  const createGroupButton = document.createElement('button');
+  createGroupButton.type = 'button';
+  createGroupButton.className = 'primary-button';
+  createGroupButton.textContent = 'Criar Grupo';
+  createGroupButton.addEventListener('click', () => {
+    window.location.href = '/criarGrupo.html';
+  });
+
+  card.append(
+    createTextElement('p', '', 'Nenhum grupo encontrado para este usuário.'),
+    createGroupButton
+  );
+
+  groupsGrid.append(card);
+}
+
+function renderNoBudgetsState(group) {
+  clearElement(budgetsGrid);
+
+  const card = document.createElement('article');
+  card.className = 'empty-card empty-card-action';
+
+  const createBudgetButton = document.createElement('button');
+  createBudgetButton.type = 'button';
+  createBudgetButton.className = 'primary-button';
+  createBudgetButton.textContent = 'Criar Orçamento';
+  createBudgetButton.addEventListener('click', () => {
+    const target = new URL('/criarOrcamento.html', window.location.origin);
+
+    if (group?.idGrupo) {
+      target.searchParams.set('idGrupo', group.idGrupo);
+    }
+
+    window.location.href = target.pathname + target.search;
+  });
+
+  card.append(
+    createTextElement('p', '', 'Nenhum orçamento encontrado para este grupo.'),
+    createBudgetButton
+  );
+
+  budgetsGrid.append(card);
+}
+
+function renderBudgets(group) {
+  const budgets = group?.orcamentos || [];
+  selectedGroupTitle.textContent = group ? `Orçamentos de ${group.dsGrupo}` : 'Orçamentos do grupo';
+
+  if (!budgets.length) {
+    renderNoBudgetsState(group);
+    return;
+  }
+
+  clearElement(budgetsGrid);
+
+  budgets.forEach((budget) => {
+    const card = document.createElement('article');
+    card.className = 'budget-card';
+
+    const top = document.createElement('div');
+    top.className = 'budget-card-top';
+    top.append(
+      createTextElement('p', 'budget-label', 'Categoria'),
+      createTextElement('span', 'budget-chip', 'Ativa')
+    );
+
+    card.append(
+      top,
+      createTextElement('h3', '', budget.ds_categoria || 'Categoria sem nome'),
+      createTextElement('p', 'budget-value', formatCurrency(budget.valor_meta)),
+      createTextElement('div', 'budget-divider', ''),
+      createTextElement('p', 'budget-meta', 'ID do orçamento'),
+      createTextElement('p', 'budget-id', budget.id_orcamento || '-')
+    );
+
+    budgetsGrid.append(card);
+  });
+}
+
+function renderGroups(groups) {
+  if (!groups.length) {
+    renderNoGroupsState();
+    renderBudgets(null);
+    return;
+  }
+
+  if (!groups.some((group) => group.idGrupo === selectedGroupId)) {
+    selectedGroupId = groups[0].idGrupo;
+  }
+
+  clearElement(groupsGrid);
+
+  groups.forEach((group) => {
+    const budgets = group.orcamentos || [];
+    const isSelected = group.idGrupo === selectedGroupId;
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = `group-card${isSelected ? ' is-selected' : ''}`;
+    button.dataset.groupId = group.idGrupo;
+
+    const top = document.createElement('div');
+    top.className = 'budget-card-top';
+    top.append(
+      createTextElement('p', 'budget-label', group.admin === 'S' ? 'Administrador' : 'Participante'),
+      createTextElement('span', 'budget-chip', `${budgets.length} orçamento${budgets.length === 1 ? '' : 's'}`)
+    );
+
+    const groupTotal = budgets.reduce((sum, budget) => sum + (Number(budget.valor_meta) || 0), 0);
+
+    button.append(
+      top,
+      createTextElement('h3', '', group.dsGrupo || 'Grupo sem nome'),
+      createTextElement('p', 'group-card-copy', `Total do grupo: ${formatCurrency(groupTotal)}`)
+    );
+
+    button.addEventListener('click', () => {
+      selectedGroupId = group.idGrupo;
+      renderGroups(groups);
+    });
+
+    groupsGrid.append(button);
+  });
+
+  renderBudgets(groups.find((group) => group.idGrupo === selectedGroupId) || groups[0]);
+}
+
+function renderDashboard(userInfo) {
+  const groups = userInfo.gruposOrcamentos || [];
+  const budgets = getAllBudgets(groups);
+  const totalValue = budgets.reduce((sum, budget) => sum + (Number(budget.valor_meta) || 0), 0);
+  const firstName = (userInfo.nome || 'Usuário').split(' ')[0];
+
+  welcomeTitle.textContent = `Olá, ${firstName}`;
+  welcomeCopy.textContent = `${userInfo.nome || 'Usuário'}, você possui ${groups.length} grupo${groups.length === 1 ? '' : 's'} de orçamento.`;
+  summaryGroups.textContent = String(groups.length);
   summaryTotal.textContent = formatCurrency(totalValue);
+  lastUpdated.textContent = `Atualizado às ${new Date().toLocaleTimeString('pt-BR', {
+    hour: '2-digit',
+    minute: '2-digit'
+  })}`;
 
-  if (!categories.length) {
-    renderEmptyState('Nenhuma categoria encontrada para este usuario.');
-  } else {
-    categoriesGrid.innerHTML = categories
-      .map(
-        (category) => `
-          <article class="budget-card">
-            <div class="budget-card-top">
-              <p class="budget-label">Categoria</p>
-              <span class="budget-chip">Ativa</span>
-            </div>
-            <h3>${category.ds_categoria}</h3>
-            <p class="budget-value">${formatCurrency(category.valor_meta)}</p>
-            <div class="budget-divider"></div>
-            <p class="budget-meta">ID do orçamento</p>
-            <p class="budget-id">${category.id_orcamento}</p>
-          </article>
-        `
-      )
-      .join('');
+  renderGroups(groups);
+}
+
+async function fetchUserInfo() {
+  if (!googleId) {
+    window.location.href = '/';
+    return;
+  }
+
+  try {
+    refreshButton.disabled = true;
+    welcomeCopy.textContent = 'Buscando informações atualizadas...';
+
+    const response = await fetch('/api/busca-info-usuario', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        idUsuario: googleId
+      })
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result?.error || 'Não foi possível buscar as informações do usuário.');
+    }
+
+    const userInfo = normalizeUserInfo(result);
+
+    if (!userInfo) {
+      throw new Error('Resposta da API em formato inesperado.');
+    }
+
+    renderDashboard(userInfo);
+  } catch (error) {
+    welcomeTitle.textContent = 'Não foi possível carregar';
+    welcomeCopy.textContent = error.message || 'Tente atualizar a página em instantes.';
+    renderEmptyState(groupsGrid, 'Os grupos não puderam ser carregados agora.');
+    renderEmptyState(budgetsGrid, 'Selecione atualizar para tentar novamente.');
+  } finally {
+    refreshButton.disabled = false;
   }
 }
 
+googleId = getLoggedUserGoogleId();
+
+if (!googleId) {
+  window.location.href = '/';
+} else {
+  fetchUserInfo();
+  refreshTimer = window.setInterval(fetchUserInfo, refreshIntervalMs);
+}
+
+refreshButton.addEventListener('click', fetchUserInfo);
+
 logoutButton.addEventListener('click', () => {
+  if (refreshTimer) {
+    window.clearInterval(refreshTimer);
+  }
+
   window.localStorage.removeItem('orcamentoJaSession');
   window.location.href = '/';
 });
