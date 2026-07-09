@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0f172a" />
+    <title>Orçamento Já | Novo Usuário</title>
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" href="/assets/logo.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body class="app-body">
+    <main class="action-shell">
+      <section class="action-card">
+        <img src="/assets/logo.svg" alt="Logo Orçamento Já" class="action-logo" />
+        <p class="eyebrow">Primeiro acesso</p>
+        <h1 class="page-title">Escolha como continuar</h1>
+        <p class="hero-copy" id="newUserMessage">
+          Seu login foi confirmado. Agora você pode criar o primeiro orçamento, entrar em um grupo ou voltar para a home.
+        </p>
+
+        <div class="action-buttons">
+          <button type="button" class="primary-button" id="createBudgetButton">Criar Orçamento</button>
+          <button type="button" class="secondary-button" id="joinGroupButton">Entrar em um Grupo</button>
+          <button type="button" class="ghost-button ghost-button-dark" id="homeButton">Home</button>
+        </div>
+      </section>
+    </main>
+
+    <script src="/novoUsuario.js" defer></script>
+  </body>
+</html>

@@ -1,0 +1,20 @@
+{
+  "name": "Orçamento Já",
+  "short_name": "Orçamento Já",
+  "description": "PWA de login do Orçamento Já, instalável em desktop e celular.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#f4efe7",
+  "theme_color": "#0f172a",
+  "lang": "pt-BR",
+  "icons": [
+    {
+      "src": "/assets/logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

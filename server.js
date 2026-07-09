@@ -1,0 +1,192 @@
+const http = require('http');
+const fs = require('fs');
+const path = require('path');
+
+function loadEnvFile() {
+  const envPath = path.join(__dirname, '.env');
+
+  if (!fs.existsSync(envPath)) {
+    return;
+  }
+
+  const envContent = fs.readFileSync(envPath, 'utf-8');
+  const lines = envContent.split(/\r?\n/);
+
+  for (const line of lines) {
+    const trimmedLine = line.trim();
+
+    if (!trimmedLine || trimmedLine.startsWith('#')) {
+      continue;
+    }
+
+    const separatorIndex = trimmedLine.indexOf('=');
+
+    if (separatorIndex === -1) {
+      continue;
+    }
+
+    const key = trimmedLine.slice(0, separatorIndex).trim();
+    let value = trimmedLine.slice(separatorIndex + 1).trim();
+
+    if (
+      (value.startsWith('"') && value.endsWith('"')) ||
+      (value.startsWith("'") && value.endsWith("'"))
+    ) {
+      value = value.slice(1, -1);
+    }
+
+    if (!(key in process.env)) {
+      process.env[key] = value;
+    }
+  }
+}
+
+loadEnvFile();
+
+const publicDir = path.join(__dirname, 'public');
+const port = process.env.PORT || 3000;
+const googleClientId = process.env.GOOGLE_CLIENT_ID || '';
+const webhookUrl = process.env.WEBHOOK_URL || '';
+const webhookAuthorization = process.env.WEBHOOK_AUTHORIZATION || '';
+
+const mimeTypes = {
+  '.html': 'text/html; charset=utf-8',
+  '.css': 'text/css; charset=utf-8',
+  '.js': 'application/javascript; charset=utf-8',
+  '.json': 'application/json; charset=utf-8',
+  '.webmanifest': 'application/manifest+json; charset=utf-8',
+  '.svg': 'image/svg+xml',
+  '.png': 'image/png',
+  '.ico': 'image/x-icon',
+  '.txt': 'text/plain; charset=utf-8'
+};
+
+function resolveFile(urlPath) {
+  const cleanPath = urlPath === '/' ? '/index.html' : urlPath;
+  const normalizedPath = path.normalize(cleanPath).replace(/^(\.\.[/\\])+/, '');
+  return path.join(publicDir, normalizedPath);
+}
+
+function readJsonBody(request) {
+  return new Promise((resolve, reject) => {
+    let body = '';
+
+    request.on('data', (chunk) => {
+      body += chunk.toString();
+    });
+
+    request.on('end', () => {
+      try {
+        resolve(body ? JSON.parse(body) : {});
+      } catch (error) {
+        reject(error);
+      }
+    });
+
+    request.on('error', reject);
+  });
+}
+
+function sendJson(response, statusCode, payload) {
+  response.writeHead(statusCode, { 'Content-Type': 'application/json; charset=utf-8' });
+  response.end(JSON.stringify(payload));
+}
+
+const server = http.createServer((request, response) => {
+  const requestUrl = new URL(request.url, `http://${request.headers.host}`);
+
+  if (request.method === 'GET' && requestUrl.pathname === '/app-config.js') {
+    response.writeHead(200, { 'Content-Type': 'application/javascript; charset=utf-8', 'Cache-Control': 'no-cache' });
+    response.end(`window.APP_CONFIG = ${JSON.stringify({ googleClientId })};`);
+    return;
+  }
+
+  if (request.method === 'POST' && requestUrl.pathname === '/api/google-login') {
+    readJsonBody(request)
+      .then(async (payload) => {
+        const requiredFields = ['google_id', 'name', 'email', 'picture'];
+        const missingField = requiredFields.find((field) => !payload[field]);
+
+        if (missingField) {
+          sendJson(response, 400, { error: `Campo obrigatorio ausente: ${missingField}` });
+          return;
+        }
+
+        if (!webhookUrl || !webhookAuthorization) {
+          sendJson(response, 500, {
+            error: 'WEBHOOK_URL e WEBHOOK_AUTHORIZATION precisam estar configurados no servidor.'
+          });
+          return;
+        }
+
+        const webhookResponse = await fetch(webhookUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': webhookAuthorization
+          },
+          body: JSON.stringify(payload)
+        });
+
+        const responseText = await webhookResponse.text();
+        let responseData;
+
+        try {
+          responseData = responseText ? JSON.parse(responseText) : null;
+        } catch (error) {
+          responseData = responseText;
+        }
+
+        if (!webhookResponse.ok) {
+          sendJson(response, webhookResponse.status, {
+            error: 'Falha ao consultar o webhook.',
+            details: responseData
+          });
+          return;
+        }
+
+        sendJson(response, 200, responseData);
+      })
+      .catch((error) => {
+        const statusCode = error instanceof SyntaxError ? 400 : 500;
+        sendJson(response, statusCode, {
+          error: statusCode === 400 ? 'JSON invalido.' : 'Erro interno ao processar login Google.'
+        });
+      });
+    return;
+  }
+
+  const filePath = resolveFile(requestUrl.pathname);
+
+  if (!filePath.startsWith(publicDir)) {
+    response.writeHead(403, { 'Content-Type': 'text/plain; charset=utf-8' });
+    response.end('Forbidden');
+    return;
+  }
+
+  fs.stat(filePath, (statError, stats) => {
+    if (statError || !stats.isFile()) {
+      response.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
+      response.end('Not found');
+      return;
+    }
+
+    const extension = path.extname(filePath).toLowerCase();
+    const contentType = mimeTypes[extension] || 'application/octet-stream';
+    const headers = {
+      'Content-Type': contentType,
+      'Cache-Control': extension === '.html' ? 'no-cache' : 'public, max-age=31536000, immutable'
+    };
+
+    if (filePath.endsWith('sw.js') || filePath.endsWith('manifest.webmanifest')) {
+      headers['Cache-Control'] = 'no-cache';
+    }
+
+    response.writeHead(200, headers);
+    fs.createReadStream(filePath).pipe(response);
+  });
+});
+
+server.listen(port, () => {
+  console.log(`Orçamento Já disponível em http://localhost:${port}`);
+});

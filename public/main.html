@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0f172a" />
+    <title>Orçamento Já | Categorias</title>
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" href="/assets/logo.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body class="app-body">
+    <main class="dashboard-shell">
+      <header class="topbar">
+        <div class="topbar-brand">
+          <img src="/assets/logo.svg" alt="Logo Orçamento Já" class="topbar-logo" />
+          <div>
+            <p class="eyebrow">Resumo</p>
+            <h1 class="page-title">Suas categorias</h1>
+          </div>
+        </div>
+
+        <div class="topbar-actions">
+          <a href="/" class="ghost-link">Início</a>
+          <button type="button" class="ghost-button" id="logoutButton">Sair</button>
+        </div>
+      </header>
+
+      <section class="dashboard-hero">
+        <article class="hero-card hero-card-main">
+          <p class="hero-kicker">Orçamentos ativos</p>
+          <h2 id="welcomeTitle">Carregando dados...</h2>
+          <p class="hero-copy" id="welcomeCopy">Estamos organizando suas metas por categoria.</p>
+        </article>
+
+        <article class="hero-card summary-card">
+          <p class="summary-label">Categorias</p>
+          <strong class="summary-value" id="summaryCategories">0</strong>
+          <p class="summary-footnote">metas cadastradas</p>
+        </article>
+
+        <article class="hero-card summary-card">
+          <p class="summary-label">Valor total</p>
+          <strong class="summary-value" id="summaryTotal">R$ 0,00</strong>
+          <p class="summary-footnote">soma das metas</p>
+        </article>
+      </section>
+
+      <section class="section-header">
+        <div>
+          <p class="section-kicker">Painel</p>
+          <h2 class="section-title">Categorias do seu orçamento</h2>
+        </div>
+      </section>
+
+      <section class="cards-grid" id="categoriesGrid"></section>
+    </main>
+
+    <script src="/main.js" defer></script>
+  </body>
+</html>

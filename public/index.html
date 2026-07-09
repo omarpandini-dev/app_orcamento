@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0f172a" />
+    <meta
+      name="description"
+      content="Acesse o Orçamento Já, faça login com Google e instale o app no desktop ou celular."
+    />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <title>Orçamento Já</title>
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" href="/assets/logo.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/assets/logo.svg" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="page-shell">
+      <section class="brand-panel">
+        <div class="brand-mark">
+          <img src="/assets/logo.svg" alt="Logo Orçamento Já" />
+        </div>
+        <p class="eyebrow">PWA financeiro</p>
+        <h1>Orçamento Já</h1>
+        <p class="brand-copy">
+          Entre com sua conta Google e acompanhe metas por categoria com uma experiência leve,
+          instalável e pronta para abrir no computador ou no celular.
+        </p>
+        
+      </section>
+
+      <section class="login-card">
+        <div class="card-header">
+          <p class="card-kicker">Entrar</p>
+          <h2>Acesse sua conta</h2>
+          <p class="card-copy">
+            Use o Google para entrar com mais rapidez e continuar seu planejamento financeiro.
+          </p>
+        </div>
+
+        <div class="login-form login-form-static">
+          <div id="googleButtonHost" class="google-button-host"></div>
+          <p class="helper-text" id="googleStatus">
+            Seu cadastro será validado automaticamente antes do redirecionamento.
+          </p>
+          <p class="helper-text helper-error" id="googleError" hidden></p>
+        </div>
+
+        <div class="install-card">
+          <div>
+            <p class="install-title">Instale o app</p>
+            <p class="install-copy" id="installMessage">
+              Disponível para desktop e Android. No iPhone, use Compartilhar e depois Adicionar à Tela de Início.
+            </p>
+          </div>
+          <button type="button" class="secondary-button" id="installButton" hidden>Instalar app</button>
+        </div>
+      </section>
+    </main>
+
+    <script src="/app-config.js"></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="/app.js" defer></script>
+  </body>
+</html>
