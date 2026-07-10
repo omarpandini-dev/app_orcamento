@@ -126,7 +126,9 @@ function initializeGoogleLogin() {
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', async () => {
     try {
-      await navigator.serviceWorker.register('/sw.js');
+
+      const registration = await navigator.serviceWorker.register('/sw.js');
+       registration.update();
     } catch (error) {
       console.error('Falha ao registrar o service worker.', error);
     }
