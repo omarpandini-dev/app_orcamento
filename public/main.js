@@ -160,7 +160,7 @@ function renderNoBudgetsState(group) {
 
   card.append(
     createTextElement('p', '', 'Nenhum orçamento encontrado para este grupo.'),
-    createBudgetButton(group)
+    //createBudgetButton(group)
   );
 
   budgetsGrid.append(card);
