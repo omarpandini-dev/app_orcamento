@@ -261,10 +261,10 @@ const server = http.createServer((request, response) => {
           return;
         }
 
-        console.log('Retorno json API BUSCA_INFO_USUARIO');
+       // console.log('Retorno json API BUSCA_INFO_USUARIO');
        // console.log( responseData);
 
-        console.log(JSON.stringify(responseData, null, 2));
+       // console.log(JSON.stringify(responseData, null, 2));
 
         sendJson(response, 200, responseData);
       })
