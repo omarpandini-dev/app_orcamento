@@ -4,6 +4,7 @@ const welcomeTitle = document.getElementById('welcomeTitle');
 const welcomeCopy = document.getElementById('welcomeCopy');
 const summaryGroups = document.getElementById('summaryGroups');
 const summaryTotal = document.getElementById('summaryTotal');
+const groupsSectionTitle = document.getElementById('groupsSectionTitle');
 const selectedGroupTitle = document.getElementById('selectedGroupTitle');
 const lastUpdated = document.getElementById('lastUpdated');
 const refreshButton = document.getElementById('refreshButton');
@@ -30,6 +31,10 @@ function formatCurrency(value) {
     style: 'currency',
     currency: 'BRL'
   }).format(Number(value) || 0);
+}
+
+function getNumericValue(value) {
+  return Number(value) || 0;
 }
 
 function createTextElement(tagName, className, text) {
@@ -60,34 +65,19 @@ function renderEmptyState(target, message) {
   target.append(card);
 }
 
-function renderNoGroupsState() {
-  clearElement(groupsGrid);
-
-  const card = document.createElement('article');
-  card.className = 'empty-card empty-card-action';
-
-  const createGroupButton = document.createElement('button');
-  createGroupButton.type = 'button';
-  createGroupButton.className = 'primary-button';
-  createGroupButton.textContent = 'Criar Grupo';
-  createGroupButton.addEventListener('click', () => {
+function createGroupButton() {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'primary-button';
+  button.textContent = 'Criar Grupo';
+  button.addEventListener('click', () => {
     window.location.href = '/criarGrupo.html';
   });
 
-  card.append(
-    createTextElement('p', '', 'Nenhum grupo encontrado para este usuário.'),
-    createGroupButton
-  );
-
-  groupsGrid.append(card);
+  return button;
 }
 
-function renderNoBudgetsState(group) {
-  clearElement(budgetsGrid);
-
-  const card = document.createElement('article');
-  card.className = 'empty-card empty-card-action';
-
+function createBudgetButton(group) {
   const createBudgetButton = document.createElement('button');
   createBudgetButton.type = 'button';
   createBudgetButton.className = 'primary-button';
@@ -102,17 +92,97 @@ function renderNoBudgetsState(group) {
     window.location.href = target.pathname + target.search;
   });
 
+  return createBudgetButton;
+}
+
+function createEditBudgetButton(budget) {
+  const button = document.createElement('button');
+  const target = new URL('/orcamentosalter.html', window.location.origin);
+  const idOrcamento = budget.id_orcamento || budget.idOrcamento || '';
+  const dsCategoria = budget.ds_categoria || budget.dsCategoria || '';
+  const diaCorte = budget.nr_dia_corte || budget.diaCorte || '';
+  const valorMeta = budget.valor_meta || budget.valorMeta || '';
+
+  target.searchParams.set('idOrcamento', idOrcamento);
+  target.searchParams.set('dsCategoria', dsCategoria);
+  target.searchParams.set('diaCorte', diaCorte);
+  target.searchParams.set('valorMeta', valorMeta);
+
+  button.type = 'button';
+  button.className = 'icon-button';
+  button.setAttribute('aria-label', 'Editar orcamento');
+  button.title = 'Editar orcamento';
+  button.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
+  button.addEventListener('click', () => {
+    window.location.href = target.pathname + target.search;
+  });
+
+  return button;
+}
+
+function renderGroupsSectionAction() {
+  groupsSectionTitle.parentElement.classList.add('section-heading-with-action');
+  groupsSectionTitle.parentElement.querySelector('.section-title-action')?.remove();
+
+  const button = createGroupButton();
+  button.classList.add('section-title-action');
+  groupsSectionTitle.insertAdjacentElement('afterend', button);
+}
+
+function renderSelectedGroupAction(group) {
+  selectedGroupTitle.parentElement.classList.add('section-heading-with-action');
+  selectedGroupTitle.parentElement.querySelector('.section-title-action')?.remove();
+
+  const button = createBudgetButton(group);
+  button.classList.add('section-title-action');
+  selectedGroupTitle.insertAdjacentElement('afterend', button);
+}
+
+function renderNoGroupsState() {
+  clearElement(groupsGrid);
+
+  const card = document.createElement('article');
+  card.className = 'empty-card empty-card-action';
+
+  card.append(
+    createTextElement('p', '', 'Nenhum grupo encontrado para este usuário.'),
+    createGroupButton()
+  );
+
+  groupsGrid.append(card);
+}
+
+function renderNoBudgetsState(group) {
+  clearElement(budgetsGrid);
+
+  const card = document.createElement('article');
+  card.className = 'empty-card empty-card-action';
+
   card.append(
     createTextElement('p', '', 'Nenhum orçamento encontrado para este grupo.'),
-    createBudgetButton
+    createBudgetButton(group)
   );
 
   budgetsGrid.append(card);
 }
 
+function createBudgetAmount(label, value, isNegative = false) {
+  const item = document.createElement('div');
+  item.className = 'budget-amount';
+
+  item.append(
+    createTextElement('p', 'budget-meta', label),
+    createTextElement('p', `budget-value${isNegative ? ' is-negative' : ''}`, formatCurrency(value))
+  );
+
+  return item;
+}
+
 function renderBudgets(group) {
   const budgets = group?.orcamentos || [];
+  const isAdmin = group?.admin === 'S';
   selectedGroupTitle.textContent = group ? `Orçamentos de ${group.dsGrupo}` : 'Orçamentos do grupo';
+  renderSelectedGroupAction(group);
 
   if (!budgets.length) {
     renderNoBudgetsState(group);
@@ -129,16 +199,30 @@ function renderBudgets(group) {
     top.className = 'budget-card-top';
     top.append(
       createTextElement('p', 'budget-label', 'Categoria'),
-      createTextElement('span', 'budget-chip', 'Ativa')
+      isAdmin ? createEditBudgetButton(budget) : createTextElement('span', 'budget-chip', 'Ativa')
+    );
+
+    const valorTotal = getNumericValue(budget.valor_meta ?? budget.valorMeta);
+    const valorGasto = getNumericValue(budget.valor_gasto ?? budget.valorGasto);
+    const saldoRestante = valorTotal - valorGasto;
+    const amounts = document.createElement('div');
+    amounts.className = 'budget-values-grid';
+    amounts.append(
+      createBudgetAmount('Valor Total', valorTotal),
+      createBudgetAmount('Valor Gasto', valorGasto),
+      createBudgetAmount('Saldo Restante', saldoRestante, saldoRestante < 0)
     );
 
     card.append(
       top,
-      createTextElement('h3', '', budget.ds_categoria || 'Categoria sem nome'),
-      createTextElement('p', 'budget-value', formatCurrency(budget.valor_meta)),
+      createTextElement('h3', '', budget.ds_categoria || budget.dsCategoria || 'Categoria sem nome'),
+      amounts,
+      createTextElement('div', 'budget-divider', ''),
+      createTextElement('p', 'budget-meta', 'Dia de corte'),
+      createTextElement('p', 'budget-id', budget.nr_dia_corte || budget.diaCorte || '-'),
       createTextElement('div', 'budget-divider', ''),
       createTextElement('p', 'budget-meta', 'ID do orçamento'),
-      createTextElement('p', 'budget-id', budget.id_orcamento || '-')
+      createTextElement('p', 'budget-id', budget.id_orcamento || budget.idOrcamento || '-')
     );
 
     budgetsGrid.append(card);
@@ -207,6 +291,7 @@ function renderDashboard(userInfo) {
     minute: '2-digit'
   })}`;
 
+  renderGroupsSectionAction();
   renderGroups(groups);
 }
 

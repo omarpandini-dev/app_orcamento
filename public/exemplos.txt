@@ -34,3 +34,8 @@ if (!budgets.length) {
   }
 
 direcionar para página de criação de orçamentos
+
+=================================================================
+Função que cria o orçamento:
+function renderNoBudgetsState(group) {
+=================================================================

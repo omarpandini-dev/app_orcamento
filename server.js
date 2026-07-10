@@ -261,6 +261,11 @@ const server = http.createServer((request, response) => {
           return;
         }
 
+        console.log('Retorno json API BUSCA_INFO_USUARIO');
+       // console.log( responseData);
+
+        console.log(JSON.stringify(responseData, null, 2));
+
         sendJson(response, 200, responseData);
       })
       .catch((error) => {
@@ -329,6 +334,122 @@ const server = http.createServer((request, response) => {
         const statusCode = error instanceof SyntaxError ? 400 : 500;
         sendJson(response, statusCode, {
           error: statusCode === 400 ? 'JSON invalido.' : 'Erro interno ao criar orcamento.'
+        });
+      });
+    return;
+  }
+
+  if (request.method === 'POST' && requestUrl.pathname === '/api/atualiza-orcamento') {
+    readJsonBody(request)
+      .then(async (payload) => {
+        const requiredFields = ['idOrcamento', 'dsCategoria', 'diaCorte', 'valorMeta'];
+        const missingField = requiredFields.find((field) => !payload[field]);
+
+        if (missingField) {
+          sendJson(response, 400, { error: `Campo obrigatorio ausente: ${missingField}` });
+          return;
+        }
+
+        if (!createGroupWebhookUrl || !createGroupWebhookAuthorization) {
+          sendJson(response, 500, {
+            error: 'CREATE_GROUP_WEBHOOK_URL e CREATE_GROUP_WEBHOOK_AUTHORIZATION precisam estar configurados no servidor.'
+          });
+          return;
+        }
+
+        const webhookResponse = await fetch(createGroupWebhookUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': createGroupWebhookAuthorization
+          },
+          body: JSON.stringify({
+            operacao: 'ATUALIZA_ORCAMENTO',
+            idOrcamento: payload.idOrcamento,
+            dsCategoria: payload.dsCategoria,
+            diaCorte: payload.diaCorte,
+            valorMeta: payload.valorMeta
+          })
+        });
+
+        const responseText = await webhookResponse.text();
+        let responseData;
+
+        try {
+          responseData = responseText ? JSON.parse(responseText) : null;
+        } catch (error) {
+          responseData = responseText;
+        }
+
+        if (!webhookResponse.ok) {
+          sendJson(response, webhookResponse.status, {
+            error: 'Falha ao atualizar orcamento.',
+            details: responseData
+          });
+          return;
+        }
+
+        sendJson(response, 200, responseData);
+      })
+      .catch((error) => {
+        const statusCode = error instanceof SyntaxError ? 400 : 500;
+        sendJson(response, statusCode, {
+          error: statusCode === 400 ? 'JSON invalido.' : 'Erro interno ao atualizar orcamento.'
+        });
+      });
+    return;
+  }
+
+  if (request.method === 'POST' && requestUrl.pathname === '/api/exclui-orcamento') {
+    readJsonBody(request)
+      .then(async (payload) => {
+        if (!payload.idOrcamento) {
+          sendJson(response, 400, { error: 'Campo obrigatorio ausente: idOrcamento' });
+          return;
+        }
+
+        if (!createGroupWebhookUrl || !createGroupWebhookAuthorization) {
+          sendJson(response, 500, {
+            error: 'CREATE_GROUP_WEBHOOK_URL e CREATE_GROUP_WEBHOOK_AUTHORIZATION precisam estar configurados no servidor.'
+          });
+          return;
+        }
+
+        const webhookResponse = await fetch(createGroupWebhookUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': createGroupWebhookAuthorization
+          },
+          body: JSON.stringify({
+            operacao: 'EXCLUI_ORCAMENTO',
+            idOrcamento: payload.idOrcamento
+          })
+        });
+
+        const responseText = await webhookResponse.text();
+        let responseData;
+
+        try {
+          responseData = responseText ? JSON.parse(responseText) : null;
+        } catch (error) {
+          responseData = responseText;
+        }
+
+        if (!webhookResponse.ok) {
+          sendJson(response, webhookResponse.status, {
+            error: 'Falha ao excluir orcamento.',
+            details: responseData
+          });
+          return;
+        }
+
+        sendJson(response, 200, responseData);
+      })
+      .catch((error) => {
+        const statusCode = error instanceof SyntaxError ? 400 : 500;
+        sendJson(response, statusCode, {
+          error: statusCode === 400 ? 'JSON invalido.' : 'Erro interno ao excluir orcamento.'
         });
       });
     return;
