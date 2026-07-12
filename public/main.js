@@ -77,6 +77,18 @@ function createGroupButton() {
   return button;
 }
 
+function createJoinGroupButton() {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'secondary-button';
+  button.textContent = 'Entrar em um Grupo';
+  button.addEventListener('click', () => {
+    window.location.href = '/entrargrupo.html';
+  });
+
+  return button;
+}
+
 function createBudgetButton(group) {
   const createBudgetButton = document.createElement('button');
   createBudgetButton.type = 'button';
@@ -120,13 +132,41 @@ function createEditBudgetButton(budget) {
   return button;
 }
 
-function renderGroupsSectionAction() {
-  groupsSectionTitle.parentElement.classList.add('section-heading-with-action');
-  groupsSectionTitle.parentElement.querySelector('.section-title-action')?.remove();
+function createMovementButton(budget) {
+  const button = document.createElement('button');
+  const target = new URL('/movimentos.html', window.location.origin);
+  const idOrcamento = budget.id_orcamento || budget.idOrcamento || '';
+  const dsCategoria = budget.ds_categoria || budget.dsCategoria || '';
 
-  const button = createGroupButton();
-  button.classList.add('section-title-action');
-  groupsSectionTitle.insertAdjacentElement('afterend', button);
+  target.searchParams.set('idOrcamento', idOrcamento);
+  target.searchParams.set('dsCategoria', dsCategoria);
+
+  button.type = 'button';
+  button.className = 'icon-button';
+  button.setAttribute('aria-label', 'Adicionar movimento');
+  button.title = 'Adicionar movimento';
+  button.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg>';
+  button.addEventListener('click', () => {
+    window.location.href = target.pathname + target.search;
+  });
+
+  return button;
+}
+
+function renderGroupsSectionAction(showJoinGroupButton = false) {
+  groupsSectionTitle.parentElement.classList.add('section-heading-with-action');
+  groupsSectionTitle.parentElement.querySelector('.section-title-actions')?.remove();
+
+  const actions = document.createElement('div');
+  actions.className = 'section-title-actions section-title-action';
+
+  actions.append(createGroupButton());
+
+  if (showJoinGroupButton) {
+    actions.append(createJoinGroupButton());
+  }
+
+  groupsSectionTitle.insertAdjacentElement('afterend', actions);
 }
 
 function renderSelectedGroupAction(group) {
@@ -166,12 +206,19 @@ function renderNoBudgetsState(group) {
   budgetsGrid.append(card);
 }
 
-function createBudgetAmount(label, value, isNegative = false) {
+function createBudgetAmount(label, value, icon, isNegative = false) {
   const item = document.createElement('div');
-  item.className = 'budget-amount';
+  item.className = `budget-amount${isNegative ? ' is-negative' : ''}`;
+
+  const header = document.createElement('div');
+  header.className = 'budget-amount-header';
+  header.append(
+    createTextElement('span', 'budget-amount-icon', icon),
+    createTextElement('p', 'budget-meta', label)
+  );
 
   item.append(
-    createTextElement('p', 'budget-meta', label),
+    header,
     createTextElement('p', `budget-value${isNegative ? ' is-negative' : ''}`, formatCurrency(value))
   );
 
@@ -197,9 +244,17 @@ function renderBudgets(group) {
 
     const top = document.createElement('div');
     top.className = 'budget-card-top';
+    const cardActions = document.createElement('div');
+    cardActions.className = 'budget-card-actions';
+    cardActions.append(createMovementButton(budget));
+
+    if (isAdmin) {
+      cardActions.append(createEditBudgetButton(budget));
+    }
+
     top.append(
       createTextElement('p', 'budget-label', 'Categoria'),
-      isAdmin ? createEditBudgetButton(budget) : createTextElement('span', 'budget-chip', 'Ativa')
+      cardActions
     );
 
     const valorTotal = getNumericValue(budget.valor_meta ?? budget.valorMeta);
@@ -208,9 +263,9 @@ function renderBudgets(group) {
     const amounts = document.createElement('div');
     amounts.className = 'budget-values-grid';
     amounts.append(
-      createBudgetAmount('Valor Total', valorTotal),
-      createBudgetAmount('Valor Gasto', valorGasto),
-      createBudgetAmount('Saldo Restante', saldoRestante, saldoRestante < 0)
+      createBudgetAmount('Valor Total', valorTotal, '🎯'),
+      createBudgetAmount('Valor Gasto', valorGasto, '💸'),
+      createBudgetAmount('Saldo Restante', saldoRestante, saldoRestante < 0 ? '⚠️' : '✅', saldoRestante < 0)
     );
 
     card.append(
@@ -232,6 +287,7 @@ function renderBudgets(group) {
 function renderGroups(groups) {
   if (!groups.length) {
     renderNoGroupsState();
+   // groupsGrid.querySelector('.empty-card')?.append(createJoinGroupButton());
     renderBudgets(null);
     return;
   }
@@ -291,7 +347,7 @@ function renderDashboard(userInfo) {
     minute: '2-digit'
   })}`;
 
-  renderGroupsSectionAction();
+  renderGroupsSectionAction(!groups.length);
   renderGroups(groups);
 }
 

@@ -455,6 +455,126 @@ const server = http.createServer((request, response) => {
     return;
   }
 
+  if (request.method === 'POST' && requestUrl.pathname === '/api/cria-movimento') {
+    readJsonBody(request)
+      .then(async (payload) => {
+        const requiredFields = ['idOrcamento', 'idUsuario', 'valor', 'descricao'];
+        const missingField = requiredFields.find((field) => !payload[field]);
+
+        if (missingField) {
+          sendJson(response, 400, { error: `Campo obrigatorio ausente: ${missingField}` });
+          return;
+        }
+
+        if (!createGroupWebhookUrl || !createGroupWebhookAuthorization) {
+          sendJson(response, 500, {
+            error: 'CREATE_GROUP_WEBHOOK_URL e CREATE_GROUP_WEBHOOK_AUTHORIZATION precisam estar configurados no servidor.'
+          });
+          return;
+        }
+
+        const webhookResponse = await fetch(createGroupWebhookUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': createGroupWebhookAuthorization
+          },
+          body: JSON.stringify({
+            operacao: 'CRIA_MOVIMENTO',
+            idOrcamento: payload.idOrcamento,
+            idUsuario: payload.idUsuario,
+            valor: payload.valor,
+            descricao: payload.descricao
+          })
+        });
+
+        const responseText = await webhookResponse.text();
+        let responseData;
+
+        try {
+          responseData = responseText ? JSON.parse(responseText) : null;
+        } catch (error) {
+          responseData = responseText;
+        }
+
+        if (!webhookResponse.ok) {
+          sendJson(response, webhookResponse.status, {
+            error: 'Falha ao criar movimento.',
+            details: responseData
+          });
+          return;
+        }
+
+        sendJson(response, 200, responseData);
+      })
+      .catch((error) => {
+        const statusCode = error instanceof SyntaxError ? 400 : 500;
+        sendJson(response, statusCode, {
+          error: statusCode === 400 ? 'JSON invalido.' : 'Erro interno ao criar movimento.'
+        });
+      });
+    return;
+  }
+
+  if (request.method === 'POST' && requestUrl.pathname === '/api/entra-grupo-usuario') {
+    readJsonBody(request)
+      .then(async (payload) => {
+        const requiredFields = ['idGrupo', 'idUsuario'];
+        const missingField = requiredFields.find((field) => !payload[field]);
+
+        if (missingField) {
+          sendJson(response, 400, { error: `Campo obrigatorio ausente: ${missingField}` });
+          return;
+        }
+
+        if (!createGroupWebhookUrl || !createGroupWebhookAuthorization) {
+          sendJson(response, 500, {
+            error: 'CREATE_GROUP_WEBHOOK_URL e CREATE_GROUP_WEBHOOK_AUTHORIZATION precisam estar configurados no servidor.'
+          });
+          return;
+        }
+
+        const webhookResponse = await fetch(createGroupWebhookUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': createGroupWebhookAuthorization
+          },
+          body: JSON.stringify({
+            operacao: 'ENTRA_GRUPO_USUARIO',
+            idGrupo: payload.idGrupo,
+            idUsuario: payload.idUsuario
+          })
+        });
+
+        const responseText = await webhookResponse.text();
+        let responseData;
+
+        try {
+          responseData = responseText ? JSON.parse(responseText) : null;
+        } catch (error) {
+          responseData = responseText;
+        }
+
+        if (!webhookResponse.ok) {
+          sendJson(response, webhookResponse.status, {
+            error: 'Falha ao entrar no grupo.',
+            details: responseData
+          });
+          return;
+        }
+
+        sendJson(response, 200, responseData);
+      })
+      .catch((error) => {
+        const statusCode = error instanceof SyntaxError ? 400 : 500;
+        sendJson(response, statusCode, {
+          error: statusCode === 400 ? 'JSON invalido.' : 'Erro interno ao entrar no grupo.'
+        });
+      });
+    return;
+  }
+
   const filePath = resolveFile(requestUrl.pathname);
 
   if (!filePath.startsWith(publicDir)) {
@@ -474,7 +594,9 @@ const server = http.createServer((request, response) => {
     const contentType = mimeTypes[extension] || 'application/octet-stream';
     const headers = {
       'Content-Type': contentType,
-      'Cache-Control': extension === '.html' ? 'no-cache' : 'public, max-age=31536000, immutable'
+      'Cache-Control': ['.html', '.js', '.css'].includes(extension)
+        ? 'no-cache'
+        : 'public, max-age=31536000, immutable'
     };
 
     if (filePath.endsWith('sw.js') || filePath.endsWith('manifest.webmanifest')) {

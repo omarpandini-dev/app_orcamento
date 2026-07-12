@@ -1,4 +1,4 @@
-const CACHE_NAME = 'orcamento-ja-v1.0.0';
+const CACHE_NAME = 'orcamento-ja-v1.0.7';
 
 console.log('CACHE_NAME', CACHE_NAME);
 
@@ -7,6 +7,14 @@ const APP_SHELL = [
   '/index.html',
   '/styles.css',
   '/app.js',
+  '/main.js',
+  '/main.html',
+  '/entrargrupo.html',
+  '/entrargrupo.js',
+  '/novoUsuario.html',
+  '/novoUsuario.js',
+  '/movimentos.html',
+  '/movimentos.js',
   '/manifest.webmanifest',
   '/assets/logo.svg'
 ];
@@ -50,7 +58,7 @@ self.addEventListener('fetch', event => {
 
     event.respondWith(
 
-      fetch(event.request)
+      fetch(event.request, { cache: 'reload' })
         .then(response => {
 
           const copy = response.clone();
@@ -73,7 +81,7 @@ self.addEventListener('fetch', event => {
 
     caches.match(event.request).then(cacheResponse => {
 
-      const networkFetch = fetch(event.request)
+      const networkFetch = fetch(event.request, { cache: 'reload' })
         .then(networkResponse => {
 
           caches.open(CACHE_NAME)

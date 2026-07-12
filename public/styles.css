@@ -402,6 +402,20 @@ img {
   white-space: nowrap;
 }
 
+.section-title-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0;
+}
+
+.section-title-actions .primary-button,
+.section-title-actions .secondary-button {
+  min-height: 48px;
+  padding: 0.8rem 1rem;
+  white-space: nowrap;
+}
+
 .cards-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -430,6 +444,13 @@ img {
   justify-content: space-between;
   align-items: center;
   gap: 0.75rem;
+}
+
+.budget-card-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
 }
 
 .icon-button {
@@ -534,21 +555,50 @@ img {
 
 .budget-values-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.75rem;
 }
 
 .budget-amount {
   min-width: 0;
+  padding: 0.85rem;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.64);
+}
+
+.budget-amount.is-negative {
+  border-color: rgba(185, 28, 28, 0.18);
+  background: rgba(254, 242, 242, 0.78);
+}
+
+.budget-amount-header {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.budget-amount-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 28px;
+  border-radius: 999px;
+  background: rgba(239, 125, 41, 0.12);
+  font-size: 1rem;
+  line-height: 1;
 }
 
 .budget-value {
   margin: 0;
-  margin-top: 0.45rem;
-  font-size: clamp(1.25rem, 2vw, 2rem);
+  margin-top: 0.6rem;
+  font-size: clamp(1.05rem, 1.6vw, 1.35rem);
   font-weight: 700;
   color: var(--panel);
-  overflow-wrap: anywhere;
+  overflow-wrap: normal;
+  white-space: nowrap;
 }
 
 .budget-value.is-negative {
@@ -848,6 +898,11 @@ img {
 
   .section-title-action {
     width: 100%;
+  }
+
+  .section-title-actions {
+    display: grid;
+    grid-template-columns: 1fr;
   }
 
   .icon-action-row {

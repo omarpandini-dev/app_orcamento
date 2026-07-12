@@ -33,6 +33,34 @@ function clearGoogleError() {
   googleError.textContent = '';
 }
 
+function normalizeUserInfo(result) {
+  const firstItem = Array.isArray(result) ? result[0] : result;
+  return firstItem?.retorno || null;
+}
+
+async function getRedirectAfterLogin(profile) {
+  const response = await fetch('/api/busca-info-usuario', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      idUsuario: profile.sub
+    })
+  });
+
+  const result = await response.json();
+
+  if (!response.ok) {
+    return '/main.html';
+  }
+
+  const userInfo = normalizeUserInfo(result);
+  const groups = userInfo?.gruposOrcamentos || [];
+
+  return groups.length ? '/main.html' : '/novoUsuario.html';
+}
+
 async function processGoogleLogin(response) {
   try {
     setGoogleLoadingState(true);
@@ -81,7 +109,8 @@ async function processGoogleLogin(response) {
 
     window.localStorage.setItem('orcamentoJaSession', JSON.stringify(sessionPayload));
 
-    window.location.href = '/main.html';
+    const redirectTarget = await getRedirectAfterLogin(profile);
+    window.location.href = redirectTarget;
     return;
 
     googleStatus.textContent = 'Login concluido, mas nenhum fluxo automatico foi definido para esse retorno.';

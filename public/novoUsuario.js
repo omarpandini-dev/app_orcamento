@@ -20,7 +20,7 @@ createBudgetButton.addEventListener('click', () => {
 });
 
 joinGroupButton.addEventListener('click', () => {
-  window.alert('Fluxo "Entrar em um Grupo" ainda sera implementado.');
+  window.location.href = '/entrargrupo.html';
 });
 
 homeButton.addEventListener('click', () => {

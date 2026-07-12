@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0f172a" />
+    <title>Orcamento Ja | Entrar em Grupo</title>
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" href="/assets/logo.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body class="app-body">
+    <main class="action-shell">
+      <section class="action-card">
+        <img src="/assets/logo.svg" alt="Logo Orcamento Ja" class="action-logo" />
+        <p class="eyebrow">Grupo existente</p>
+        <h1 class="page-title">Entrar em um grupo</h1>
+        <p class="hero-copy">Informe o codigo do grupo para participar de um orcamento compartilhado.</p>
+
+        <form class="group-form" id="joinGroupForm">
+          <label for="groupCode">Codigo do grupo</label>
+          <div class="group-input-shell">
+            <span class="group-input-icon" aria-hidden="true">ID</span>
+            <input
+              type="text"
+              id="groupCode"
+              name="groupCode"
+              autocomplete="off"
+              required
+              maxlength="80"
+              placeholder="Ex.: 82526d87-02dd-43ed-98e1-fe0b53e01071"
+            />
+          </div>
+
+          <button type="submit" class="primary-button" id="joinGroupButton">Entrar</button>
+        </form>
+
+        <p class="api-result" id="joinGroupResult" hidden></p>
+
+        <div class="action-buttons action-buttons-compact" id="joinGroupActions" hidden>
+          <button type="button" class="ghost-button ghost-button-dark" id="homeButton">Home</button>
+        </div>
+      </section>
+    </main>
+
+    <script src="/entrargrupo.js" defer></script>
+  </body>
+</html>
