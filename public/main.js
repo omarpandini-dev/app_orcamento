@@ -48,6 +48,23 @@ function clearElement(element) {
   element.replaceChildren();
 }
 
+function copyTextToClipboard(text) {
+  if (navigator.clipboard?.writeText) {
+    return navigator.clipboard.writeText(text);
+  }
+
+  const input = document.createElement('input');
+  input.value = text;
+  input.setAttribute('readonly', '');
+  input.style.position = 'fixed';
+  input.style.opacity = '0';
+  document.body.append(input);
+  input.select();
+  document.execCommand('copy');
+  input.remove();
+  return Promise.resolve();
+}
+
 function normalizeUserInfo(result) {
   const firstItem = Array.isArray(result) ? result[0] : result;
   return firstItem?.retorno || null;
@@ -89,11 +106,36 @@ function createJoinGroupButton() {
   return button;
 }
 
+function createCopyGroupIdButton(group) {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'copy-id-button';
+  button.textContent = 'Copiar ID';
+  button.setAttribute('aria-label', 'Copiar ID do grupo');
+  button.title = 'Copiar ID do grupo';
+  button.addEventListener('click', async (event) => {
+    event.stopPropagation();
+
+    try {
+      await copyTextToClipboard(group.idGrupo || '');
+      button.textContent = 'Copiado';
+    } catch (error) {
+      button.textContent = 'Erro';
+    }
+
+    window.setTimeout(() => {
+      button.textContent = 'Copiar ID';
+    }, 1400);
+  });
+
+  return button;
+}
+
 function createBudgetButton(group) {
   const createBudgetButton = document.createElement('button');
   createBudgetButton.type = 'button';
   createBudgetButton.className = 'primary-button';
-  createBudgetButton.textContent = 'Criar Orçamento';
+  createBudgetButton.textContent = 'Criar Orcamento';
   createBudgetButton.addEventListener('click', () => {
     const target = new URL('/criarOrcamento.html', window.location.origin);
 
@@ -185,8 +227,9 @@ function renderNoGroupsState() {
   card.className = 'empty-card empty-card-action';
 
   card.append(
-    createTextElement('p', '', 'Nenhum grupo encontrado para este usuário.'),
-    createGroupButton()
+    createTextElement('p', '', 'Nenhum grupo encontrado para este usuario.'),
+    createGroupButton(),
+    createJoinGroupButton()
   );
 
   groupsGrid.append(card);
@@ -199,8 +242,7 @@ function renderNoBudgetsState(group) {
   card.className = 'empty-card empty-card-action';
 
   card.append(
-    createTextElement('p', '', 'Nenhum orçamento encontrado para este grupo.'),
-    //createBudgetButton(group)
+    createTextElement('p', '', 'Nenhum orcamento encontrado para este grupo.')
   );
 
   budgetsGrid.append(card);
@@ -228,7 +270,7 @@ function createBudgetAmount(label, value, icon, isNegative = false) {
 function renderBudgets(group) {
   const budgets = group?.orcamentos || [];
   const isAdmin = group?.admin === 'S';
-  selectedGroupTitle.textContent = group ? `Orçamentos de ${group.dsGrupo}` : 'Orçamentos do grupo';
+  selectedGroupTitle.textContent = group ? `Orcamentos de ${group.dsGrupo}` : 'Orcamentos do grupo';
   renderSelectedGroupAction(group);
 
   if (!budgets.length) {
@@ -276,7 +318,7 @@ function renderBudgets(group) {
       createTextElement('p', 'budget-meta', 'Dia de corte'),
       createTextElement('p', 'budget-id', budget.nr_dia_corte || budget.diaCorte || '-'),
       createTextElement('div', 'budget-divider', ''),
-      createTextElement('p', 'budget-meta', 'ID do orçamento'),
+      createTextElement('p', 'budget-meta', 'ID do orcamento'),
       createTextElement('p', 'budget-id', budget.id_orcamento || budget.idOrcamento || '-')
     );
 
@@ -284,10 +326,14 @@ function renderBudgets(group) {
   });
 }
 
+function selectGroup(group, groups) {
+  selectedGroupId = group.idGrupo;
+  renderGroups(groups);
+}
+
 function renderGroups(groups) {
   if (!groups.length) {
     renderNoGroupsState();
-   // groupsGrid.querySelector('.empty-card')?.append(createJoinGroupButton());
     renderBudgets(null);
     return;
   }
@@ -301,32 +347,48 @@ function renderGroups(groups) {
   groups.forEach((group) => {
     const budgets = group.orcamentos || [];
     const isSelected = group.idGrupo === selectedGroupId;
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.className = `group-card${isSelected ? ' is-selected' : ''}`;
-    button.dataset.groupId = group.idGrupo;
+    const card = document.createElement('article');
+    card.className = `group-card${isSelected ? ' is-selected' : ''}`;
+    card.dataset.groupId = group.idGrupo;
+    card.tabIndex = 0;
+    card.setAttribute('role', 'button');
 
     const top = document.createElement('div');
     top.className = 'budget-card-top';
+    const groupActions = document.createElement('div');
+    groupActions.className = 'budget-card-actions';
+    groupActions.append(
+      createTextElement('span', 'budget-chip', `${budgets.length} orcamento${budgets.length === 1 ? '' : 's'}`),
+      createCopyGroupIdButton(group)
+    );
+
     top.append(
       createTextElement('p', 'budget-label', group.admin === 'S' ? 'Administrador' : 'Participante'),
-      createTextElement('span', 'budget-chip', `${budgets.length} orçamento${budgets.length === 1 ? '' : 's'}`)
+      groupActions
     );
 
     const groupTotal = budgets.reduce((sum, budget) => sum + (Number(budget.valor_meta) || 0), 0);
 
-    button.append(
+    card.append(
       top,
       createTextElement('h3', '', group.dsGrupo || 'Grupo sem nome'),
       createTextElement('p', 'group-card-copy', `Total do grupo: ${formatCurrency(groupTotal)}`)
     );
 
-    button.addEventListener('click', () => {
-      selectedGroupId = group.idGrupo;
-      renderGroups(groups);
+    card.addEventListener('click', () => {
+      selectGroup(group, groups);
     });
 
-    groupsGrid.append(button);
+    card.addEventListener('keydown', (event) => {
+      if (event.key !== 'Enter' && event.key !== ' ') {
+        return;
+      }
+
+      event.preventDefault();
+      selectGroup(group, groups);
+    });
+
+    groupsGrid.append(card);
   });
 
   renderBudgets(groups.find((group) => group.idGrupo === selectedGroupId) || groups[0]);
@@ -336,13 +398,13 @@ function renderDashboard(userInfo) {
   const groups = userInfo.gruposOrcamentos || [];
   const budgets = getAllBudgets(groups);
   const totalValue = budgets.reduce((sum, budget) => sum + (Number(budget.valor_meta) || 0), 0);
-  const firstName = (userInfo.nome || 'Usuário').split(' ')[0];
+  const firstName = (userInfo.nome || 'Usuario').split(' ')[0];
 
-  welcomeTitle.textContent = `Olá, ${firstName}`;
-  welcomeCopy.textContent = `${userInfo.nome || 'Usuário'}, você possui ${groups.length} grupo${groups.length === 1 ? '' : 's'} de orçamento.`;
+  welcomeTitle.textContent = `Ola, ${firstName}`;
+  welcomeCopy.textContent = `${userInfo.nome || 'Usuario'}, voce possui ${groups.length} grupo${groups.length === 1 ? '' : 's'} de orcamento.`;
   summaryGroups.textContent = String(groups.length);
   summaryTotal.textContent = formatCurrency(totalValue);
-  lastUpdated.textContent = `Atualizado às ${new Date().toLocaleTimeString('pt-BR', {
+  lastUpdated.textContent = `Atualizado as ${new Date().toLocaleTimeString('pt-BR', {
     hour: '2-digit',
     minute: '2-digit'
   })}`;
@@ -359,7 +421,7 @@ async function fetchUserInfo() {
 
   try {
     refreshButton.disabled = true;
-    welcomeCopy.textContent = 'Buscando informações atualizadas...';
+    welcomeCopy.textContent = 'Buscando informacoes atualizadas...';
 
     const response = await fetch('/api/busca-info-usuario', {
       method: 'POST',
@@ -374,7 +436,7 @@ async function fetchUserInfo() {
     const result = await response.json();
 
     if (!response.ok) {
-      throw new Error(result?.error || 'Não foi possível buscar as informações do usuário.');
+      throw new Error(result?.error || 'Nao foi possivel buscar as informacoes do usuario.');
     }
 
     const userInfo = normalizeUserInfo(result);
@@ -385,9 +447,9 @@ async function fetchUserInfo() {
 
     renderDashboard(userInfo);
   } catch (error) {
-    welcomeTitle.textContent = 'Não foi possível carregar';
-    welcomeCopy.textContent = error.message || 'Tente atualizar a página em instantes.';
-    renderEmptyState(groupsGrid, 'Os grupos não puderam ser carregados agora.');
+    welcomeTitle.textContent = 'Nao foi possivel carregar';
+    welcomeCopy.textContent = error.message || 'Tente atualizar a pagina em instantes.';
+    renderEmptyState(groupsGrid, 'Os grupos nao puderam ser carregados agora.');
     renderEmptyState(budgetsGrid, 'Selecione atualizar para tentar novamente.');
   } finally {
     refreshButton.disabled = false;

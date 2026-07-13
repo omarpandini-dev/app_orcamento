@@ -504,6 +504,25 @@ img {
   font-weight: 700;
 }
 
+.copy-id-button {
+  min-height: 32px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  border-radius: 999px;
+  padding: 0.35rem 0.75rem;
+  background: rgba(255, 255, 255, 0.78);
+  color: var(--accent-strong);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 800;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.copy-id-button:hover {
+  border-color: rgba(239, 125, 41, 0.62);
+  background: rgba(255, 246, 236, 0.96);
+}
+
 .budget-card h3 {
   margin: 1rem 0 1.1rem;
   font-size: 1.45rem;
@@ -527,10 +546,16 @@ img {
 }
 
 .group-card:hover,
-.group-card.is-selected {
+.group-card.is-selected,
+.group-card:focus-visible {
   border-color: rgba(239, 125, 41, 0.58);
   box-shadow: 0 20px 38px rgba(15, 23, 42, 0.12);
   transform: translateY(-1px);
+}
+
+.group-card:focus-visible {
+  outline: 3px solid rgba(239, 125, 41, 0.24);
+  outline-offset: 3px;
 }
 
 .group-card.is-selected {
