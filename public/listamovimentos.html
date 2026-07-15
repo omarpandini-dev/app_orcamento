@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0f172a" />
+    <title>Orcamento Ja | Movimentos</title>
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" href="/assets/logo.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body class="app-body">
+    <main class="dashboard-shell">
+      <header class="topbar">
+        <div class="topbar-brand">
+          <img src="/assets/logo.svg" alt="Logo Orcamento Ja" class="topbar-logo" />
+          <div>
+            <p class="eyebrow">Movimentos</p>
+            <h1 class="page-title">Lista de movimentos</h1>
+          </div>
+        </div>
+        <div class="topbar-actions">
+          <button type="button" class="ghost-button ghost-button-dark" id="homeButton">Home</button>
+        </div>
+      </header>
+
+      <section class="hero-card movement-list-header">
+        <p class="section-kicker">Orcamento</p>
+        <h2 class="section-title" id="movementListTitle">Carregando movimentos</h2>
+        <p class="hero-copy" id="movementListCopy">Buscando movimentos deste orcamento.</p>
+      </section>
+
+      <section class="movement-list-section" aria-labelledby="movementListTitle">
+        <div class="movement-table" id="movementsGrid"></div>
+      </section>
+    </main>
+
+    <script src="/listamovimentos.js" defer></script>
+  </body>
+</html>

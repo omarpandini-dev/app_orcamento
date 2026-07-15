@@ -455,6 +455,116 @@ const server = http.createServer((request, response) => {
     return;
   }
 
+  if (request.method === 'POST' && requestUrl.pathname === '/api/exclui-grupo') {
+    readJsonBody(request)
+      .then(async (payload) => {
+        if (!payload.idGrupo) {
+          sendJson(response, 400, { error: 'Campo obrigatorio ausente: idGrupo' });
+          return;
+        }
+
+        if (!createGroupWebhookUrl || !createGroupWebhookAuthorization) {
+          sendJson(response, 500, {
+            error: 'CREATE_GROUP_WEBHOOK_URL e CREATE_GROUP_WEBHOOK_AUTHORIZATION precisam estar configurados no servidor.'
+          });
+          return;
+        }
+
+        const webhookResponse = await fetch(createGroupWebhookUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': createGroupWebhookAuthorization
+          },
+          body: JSON.stringify({
+            operacao: 'EXCLUI_GRUPO',
+            idGrupo: payload.idGrupo
+          })
+        });
+
+        const responseText = await webhookResponse.text();
+        let responseData;
+
+        try {
+          responseData = responseText ? JSON.parse(responseText) : null;
+        } catch (error) {
+          responseData = responseText;
+        }
+
+        if (!webhookResponse.ok) {
+          sendJson(response, webhookResponse.status, {
+            error: 'Falha ao excluir grupo.',
+            details: responseData
+          });
+          return;
+        }
+
+        sendJson(response, 200, responseData);
+      })
+      .catch((error) => {
+        const statusCode = error instanceof SyntaxError ? 400 : 500;
+        sendJson(response, statusCode, {
+          error: statusCode === 400 ? 'JSON invalido.' : 'Erro interno ao excluir grupo.'
+        });
+      });
+    return;
+  }
+
+  if (request.method === 'POST' && requestUrl.pathname === '/api/busca-movimentos') {
+    readJsonBody(request)
+      .then(async (payload) => {
+        if (!payload.idOrcamento) {
+          sendJson(response, 400, { error: 'Campo obrigatorio ausente: idOrcamento' });
+          return;
+        }
+
+        if (!createGroupWebhookUrl || !createGroupWebhookAuthorization) {
+          sendJson(response, 500, {
+            error: 'CREATE_GROUP_WEBHOOK_URL e CREATE_GROUP_WEBHOOK_AUTHORIZATION precisam estar configurados no servidor.'
+          });
+          return;
+        }
+
+        const webhookResponse = await fetch(createGroupWebhookUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': createGroupWebhookAuthorization
+          },
+          body: JSON.stringify({
+            operacao: 'BUSCA_MOVIMENTOS',
+            idOrcamento: payload.idOrcamento
+          })
+        });
+
+        const responseText = await webhookResponse.text();
+        let responseData;
+
+        try {
+          responseData = responseText ? JSON.parse(responseText) : null;
+        } catch (error) {
+          responseData = responseText;
+        }
+
+        if (!webhookResponse.ok) {
+          sendJson(response, webhookResponse.status, {
+            error: 'Falha ao buscar movimentos.',
+            details: responseData
+          });
+          return;
+        }
+
+        sendJson(response, 200, responseData);
+      })
+      .catch((error) => {
+        const statusCode = error instanceof SyntaxError ? 400 : 500;
+        sendJson(response, statusCode, {
+          error: statusCode === 400 ? 'JSON invalido.' : 'Erro interno ao buscar movimentos.'
+        });
+      });
+    return;
+  }
+
   if (request.method === 'POST' && requestUrl.pathname === '/api/cria-movimento') {
     readJsonBody(request)
       .then(async (payload) => {

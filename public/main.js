@@ -174,6 +174,26 @@ function createEditBudgetButton(budget) {
   return button;
 }
 
+function createEditGroupButton(group) {
+  const button = document.createElement('button');
+  const target = new URL('/manutgrupo.html', window.location.origin);
+
+  target.searchParams.set('idGrupo', group.idGrupo || '');
+  target.searchParams.set('dsGrupo', group.dsGrupo || '');
+
+  button.type = 'button';
+  button.className = 'icon-button';
+  button.setAttribute('aria-label', 'Editar grupo');
+  button.title = 'Editar grupo';
+  button.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
+  button.addEventListener('click', (event) => {
+    event.stopPropagation();
+    window.location.href = target.pathname + target.search;
+  });
+
+  return button;
+}
+
 function createMovementButton(budget) {
   const button = document.createElement('button');
   const target = new URL('/movimentos.html', window.location.origin);
@@ -195,6 +215,27 @@ function createMovementButton(budget) {
   return button;
 }
 
+function createListMovementsButton(budget) {
+  const button = document.createElement('button');
+  const target = new URL('/listamovimentos.html', window.location.origin);
+  const idOrcamento = budget.id_orcamento || budget.idOrcamento || '';
+  const dsCategoria = budget.ds_categoria || budget.dsCategoria || '';
+
+  target.searchParams.set('idOrcamento', idOrcamento);
+  target.searchParams.set('dsCategoria', dsCategoria);
+
+  button.type = 'button';
+  button.className = 'icon-button';
+  button.setAttribute('aria-label', 'Listar movimentos');
+  button.title = 'Listar movimentos';
+  button.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6h13"/><path d="M8 12h13"/><path d="M8 18h13"/><path d="M3 6h.01"/><path d="M3 12h.01"/><path d="M3 18h.01"/></svg>';
+  button.addEventListener('click', () => {
+    window.location.href = target.pathname + target.search;
+  });
+
+  return button;
+}
+
 function renderGroupsSectionAction(showJoinGroupButton = false) {
   groupsSectionTitle.parentElement.classList.add('section-heading-with-action');
   groupsSectionTitle.parentElement.querySelector('.section-title-actions')?.remove();
@@ -202,10 +243,10 @@ function renderGroupsSectionAction(showJoinGroupButton = false) {
   const actions = document.createElement('div');
   actions.className = 'section-title-actions section-title-action';
 
-  actions.append(createGroupButton());
+ actions.append(createGroupButton());
 
   if (showJoinGroupButton) {
-    actions.append(createJoinGroupButton());
+   // actions.append(createJoinGroupButton());
   }
 
   groupsSectionTitle.insertAdjacentElement('afterend', actions);
@@ -228,7 +269,7 @@ function renderNoGroupsState() {
 
   card.append(
     createTextElement('p', '', 'Nenhum grupo encontrado para este usuario.'),
-    createGroupButton(),
+   // createGroupButton(),
     createJoinGroupButton()
   );
 
@@ -288,7 +329,7 @@ function renderBudgets(group) {
     top.className = 'budget-card-top';
     const cardActions = document.createElement('div');
     cardActions.className = 'budget-card-actions';
-    cardActions.append(createMovementButton(budget));
+    cardActions.append(createMovementButton(budget), createListMovementsButton(budget));
 
     if (isAdmin) {
       cardActions.append(createEditBudgetButton(budget));
@@ -347,6 +388,7 @@ function renderGroups(groups) {
   groups.forEach((group) => {
     const budgets = group.orcamentos || [];
     const isSelected = group.idGrupo === selectedGroupId;
+    const isAdmin = group.admin === 'S';
     const card = document.createElement('article');
     card.className = `group-card${isSelected ? ' is-selected' : ''}`;
     card.dataset.groupId = group.idGrupo;
@@ -362,8 +404,12 @@ function renderGroups(groups) {
       createCopyGroupIdButton(group)
     );
 
+    if (isAdmin) {
+      groupActions.append(createEditGroupButton(group));
+    }
+
     top.append(
-      createTextElement('p', 'budget-label', group.admin === 'S' ? 'Administrador' : 'Participante'),
+      createTextElement('p', 'budget-label', isAdmin ? 'Administrador' : 'Participante'),
       groupActions
     );
 
@@ -388,7 +434,7 @@ function renderGroups(groups) {
       selectGroup(group, groups);
     });
 
-    groupsGrid.append(card);
+     groupsGrid.append(card);
   });
 
   renderBudgets(groups.find((group) => group.idGrupo === selectedGroupId) || groups[0]);

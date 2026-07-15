@@ -578,6 +578,74 @@ img {
   margin-top: 0.5rem;
 }
 
+.movement-list-header {
+  margin-bottom: 1.5rem;
+}
+
+.movement-list-section {
+  margin-top: 1.5rem;
+}
+
+.movement-table {
+  overflow: hidden;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 18px 35px rgba(15, 23, 42, 0.08);
+}
+
+.movement-table-header,
+.movement-row {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) minmax(110px, 0.35fr) minmax(110px, 0.3fr) minmax(72px, 0.2fr);
+  align-items: center;
+  gap: 1rem;
+}
+
+.movement-table-header {
+  padding: 0.8rem 1rem;
+  color: var(--muted);
+  background: rgba(15, 23, 42, 0.06);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08rem;
+  text-transform: uppercase;
+}
+
+.movement-row {
+  min-height: 54px;
+  padding: 0.85rem 1rem;
+  border-top: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.movement-cell {
+  min-width: 0;
+  color: var(--text);
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.movement-description {
+  font-weight: 700;
+}
+
+.movement-value {
+  color: var(--panel);
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.movement-date,
+.movement-id {
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.movement-empty-card {
+  border-radius: 18px;
+  box-shadow: none;
+}
+
 .budget-values-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -665,6 +733,48 @@ img {
 }
 
 @media (max-width: 720px) {
+  .movement-table {
+    display: grid;
+    gap: 0.75rem;
+    overflow: visible;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .movement-table-header {
+    display: none;
+  }
+
+  .movement-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+    min-height: 0;
+    padding: 1rem;
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 12px 24px rgba(15, 23, 42, 0.08);
+  }
+
+  .movement-cell {
+    display: grid;
+    grid-template-columns: 6.5rem 1fr;
+    gap: 0.75rem;
+    align-items: baseline;
+  }
+
+  .movement-cell::before {
+    content: attr(data-label);
+    color: var(--muted);
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.08rem;
+    text-transform: uppercase;
+  }
+
   .budget-values-grid {
     grid-template-columns: 1fr;
   }
@@ -721,6 +831,10 @@ img {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.85rem;
+}
+
+.icon-action-row-single {
+  grid-template-columns: 1fr;
 }
 
 .icon-action-button {

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'orcamento-ja-v1.0.9';
+const CACHE_NAME = 'orcamento-ja-v1.0.12';
 
 console.log('CACHE_NAME', CACHE_NAME);
 
@@ -15,6 +15,10 @@ const APP_SHELL = [
   '/novoUsuario.js',
   '/movimentos.html',
   '/movimentos.js',
+  '/listamovimentos.html',
+  '/listamovimentos.js',
+  '/manutgrupo.html',
+  '/manutgrupo.js',
   '/manifest.webmanifest',
   '/assets/logo.svg'
 ];

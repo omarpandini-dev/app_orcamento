@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0f172a" />
+    <title>Orcamento Ja | Manutencao de Grupo</title>
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" href="/assets/logo.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body class="app-body">
+    <main class="action-shell">
+      <section class="action-card">
+        <img src="/assets/logo.svg" alt="Logo Orcamento Ja" class="action-logo" />
+        <p class="eyebrow">Grupo</p>
+        <h1 class="page-title">Manutencao de grupo</h1>
+        <p class="hero-copy">Confira os dados do grupo ou exclua este grupo.</p>
+
+        <form class="group-form" id="groupMaintenanceForm">
+          <label for="idGrupo">ID do Grupo</label>
+          <div class="group-input-shell">
+            <span class="group-input-icon" aria-hidden="true">ID</span>
+            <input type="text" id="idGrupo" name="idGrupo" readonly required />
+          </div>
+
+          <label for="dsGrupo">Nome do Grupo</label>
+          <div class="group-input-shell">
+            <span class="group-input-icon" aria-hidden="true">#</span>
+            <input type="text" id="dsGrupo" name="dsGrupo" readonly />
+          </div>
+
+          <div class="icon-action-row icon-action-row-single">
+            <button type="button" class="icon-action-button icon-action-button-danger" id="deleteGroupButton" aria-label="Excluir grupo" title="Excluir grupo">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v5"/><path d="M14 11v5"/></svg>
+              <span>Excluir</span>
+            </button>
+          </div>
+        </form>
+
+        <p class="api-result" id="groupMaintenanceResult" hidden></p>
+
+        <div class="action-buttons action-buttons-compact">
+          <button type="button" class="ghost-button ghost-button-dark" id="homeButton">Home</button>
+        </div>
+      </section>
+    </main>
+
+    <script src="/manutgrupo.js" defer></script>
+  </body>
+</html>
