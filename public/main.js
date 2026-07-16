@@ -409,7 +409,7 @@ function renderGroups(groups) {
     }
 
     top.append(
-      createTextElement('p', 'budget-label', isAdmin ? 'Administrador' : 'Participante'),
+      createTextElement('p', 'budget-label', isAdmin ? 'Admin' : 'Participante'),
       groupActions
     );
 

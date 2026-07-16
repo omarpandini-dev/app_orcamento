@@ -74,20 +74,19 @@ function renderMovements(movements) {
   header.append(
     createTextElement('span', '', 'Descricao'),
     createTextElement('span', '', 'Valor'),
-    createTextElement('span', '', 'Data'),
-    createTextElement('span', '', 'ID')
+    createTextElement('span', '', 'Data')
   );
   movementsGrid.append(header);
 
   movements.forEach((movement) => {
     const row = document.createElement('article');
     row.className = 'movement-row';
+    row.dataset.idMovimento = movement.id_movimento || '';
 
     row.append(
       createMovementCell('Descricao', movement.descricao || 'Movimento sem descricao', 'movement-description'),
       createMovementCell('Valor', formatCurrency(movement.valor), 'movement-value'),
-      createMovementCell('Data', formatMovementDate(movement.data_movimento), 'movement-date'),
-      createMovementCell('ID', movement.id_movimento || '-', 'movement-id')
+      createMovementCell('Data', formatMovementDate(movement.data_movimento), 'movement-date')
     );
 
     movementsGrid.append(row);
