@@ -1,4 +1,4 @@
-const CACHE_NAME = 'orcamento-ja-v1.0.13';
+const CACHE_NAME = 'orcamento-ja-v1.0.14';
 
 console.log('CACHE_NAME', CACHE_NAME);
 
