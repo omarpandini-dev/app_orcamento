@@ -523,10 +523,59 @@ img {
   background: rgba(255, 246, 236, 0.96);
 }
 
-.budget-card h3 {
+.budget-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
   margin: 1rem 0 1.1rem;
+}
+
+.budget-title-row h3 {
+  min-width: 0;
+  margin: 0;
   font-size: 1.45rem;
   line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+
+.budget-progress {
+  display: grid;
+  gap: 0.35rem;
+  width: min(42%, 180px);
+  min-width: 116px;
+  flex: 0 0 auto;
+}
+
+.budget-progress-label {
+  color: var(--success);
+  font-size: 0.74rem;
+  font-weight: 800;
+  line-height: 1;
+  text-align: right;
+  text-transform: uppercase;
+}
+
+.budget-progress.is-exceeded .budget-progress-label {
+  color: var(--danger);
+}
+
+.budget-progress-bar {
+  height: 0.55rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.1);
+}
+
+.budget-progress-fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--success) 0%, #22c55e 100%);
+}
+
+.budget-progress.is-exceeded .budget-progress-fill {
+  background: var(--danger);
 }
 
 .group-card {
@@ -597,7 +646,7 @@ img {
 .movement-table-header,
 .movement-row {
   display: grid;
-  grid-template-columns: minmax(180px, 1fr) minmax(110px, 0.35fr) minmax(110px, 0.3fr);
+  grid-template-columns: minmax(180px, 1fr) minmax(110px, 0.35fr) minmax(110px, 0.3fr) minmax(44px, 0.12fr);
   align-items: center;
   gap: 1rem;
 }
@@ -638,6 +687,24 @@ img {
 .movement-date {
   color: var(--muted);
   font-size: 0.92rem;
+}
+
+.movement-header-action,
+.movement-action-cell {
+  justify-self: end;
+}
+
+.movement-delete-button {
+  color: var(--danger);
+}
+
+.movement-delete-button:hover {
+  border-color: rgba(185, 28, 28, 0.36);
+  background: rgba(254, 242, 242, 0.92);
+}
+
+.movement-list-result {
+  margin: 0 0 0.85rem;
 }
 
 .movement-empty-card {
@@ -717,6 +784,10 @@ img {
   word-break: break-word;
 }
 
+.budget-id-section {
+  display: none;
+}
+
 .empty-card {
   background: rgba(255, 255, 255, 0.82);
 }
@@ -774,8 +845,28 @@ img {
     text-transform: uppercase;
   }
 
+  .movement-action-cell {
+    justify-self: stretch;
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 0.35rem;
+  }
+
   .budget-values-grid {
     grid-template-columns: 1fr;
+  }
+
+  .budget-title-row {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .budget-progress {
+    width: 100%;
+  }
+
+  .budget-progress-label {
+    text-align: left;
   }
 }
 

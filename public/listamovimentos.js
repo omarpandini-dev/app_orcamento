@@ -3,10 +3,12 @@ const params = new URLSearchParams(window.location.search);
 const movementsGrid = document.getElementById('movementsGrid');
 const movementListTitle = document.getElementById('movementListTitle');
 const movementListCopy = document.getElementById('movementListCopy');
+const movementListResult = document.getElementById('movementListResult');
 const homeButton = document.getElementById('homeButton');
 
 const idOrcamento = params.get('idOrcamento') || '';
 const dsCategoria = params.get('dsCategoria') || '';
+let movementCount = 0;
 
 function formatCurrency(value) {
   return new Intl.NumberFormat('pt-BR', {
@@ -44,6 +46,17 @@ function clearElement(element) {
   element.replaceChildren();
 }
 
+function normalizeApiResult(result) {
+  return Array.isArray(result) ? result[0] : result;
+}
+
+function showMovementResult(message, hasError) {
+  movementListResult.hidden = false;
+  movementListResult.textContent = message;
+  movementListResult.classList.toggle('api-result-success', !hasError);
+  movementListResult.classList.toggle('api-result-error', hasError);
+}
+
 function renderEmptyState(message) {
   clearElement(movementsGrid);
 
@@ -61,6 +74,31 @@ function createMovementCell(label, value, className = '') {
   return cell;
 }
 
+function createDeleteMovementButton(row) {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'icon-button movement-delete-button';
+  button.setAttribute('aria-label', 'Excluir movimento');
+  button.title = 'Excluir movimento';
+  button.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>';
+  button.addEventListener('click', () => {
+    deleteMovement(row, button);
+  });
+  return button;
+}
+
+function createMovementActionCell(row) {
+  const cell = document.createElement('div');
+  cell.className = 'movement-action-cell';
+  cell.append(createDeleteMovementButton(row));
+  return cell;
+}
+
+function updateMovementCount(count) {
+  movementCount = count;
+  movementListCopy.textContent = `${movementCount} movimento${movementCount === 1 ? '' : 's'} encontrado${movementCount === 1 ? '' : 's'}.`;
+}
+
 function renderMovements(movements) {
   clearElement(movementsGrid);
 
@@ -74,7 +112,8 @@ function renderMovements(movements) {
   header.append(
     createTextElement('span', '', 'Descricao'),
     createTextElement('span', '', 'Valor'),
-    createTextElement('span', '', 'Data')
+    createTextElement('span', '', 'Data'),
+    createTextElement('span', 'movement-header-action', 'Excluir')
   );
   movementsGrid.append(header);
 
@@ -86,11 +125,56 @@ function renderMovements(movements) {
     row.append(
       createMovementCell('Descricao', movement.descricao || 'Movimento sem descricao', 'movement-description'),
       createMovementCell('Valor', formatCurrency(movement.valor), 'movement-value'),
-      createMovementCell('Data', formatMovementDate(movement.data_movimento), 'movement-date')
+      createMovementCell('Data', formatMovementDate(movement.data_movimento), 'movement-date'),
+      createMovementActionCell(row)
     );
 
     movementsGrid.append(row);
   });
+}
+
+async function deleteMovement(row, button) {
+  const idMovimento = row.dataset.idMovimento;
+
+  if (!idMovimento) {
+    showMovementResult('Nao foi possivel identificar o movimento.', true);
+    return;
+  }
+
+  try {
+    button.disabled = true;
+    movementListResult.hidden = true;
+
+    const response = await fetch('/api/exclui-movimento', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ idMovimento })
+    });
+
+    const result = normalizeApiResult(await response.json());
+
+    if (!response.ok) {
+      throw new Error(result?.error || 'Nao foi possivel excluir o movimento.');
+    }
+
+    const hasError = result?.idErro === 'S';
+    showMovementResult(result?.retorno || 'Operacao concluida.', hasError);
+
+    if (!hasError) {
+      row.remove();
+      updateMovementCount(Math.max(movementCount - 1, 0));
+
+      if (movementCount === 0) {
+        renderEmptyState('Nenhum movimento encontrado para este orcamento.');
+      }
+    }
+  } catch (error) {
+    showMovementResult(error.message || 'Erro ao excluir movimento.', true);
+  } finally {
+    button.disabled = false;
+  }
 }
 
 async function fetchMovements() {
@@ -121,7 +205,7 @@ async function fetchMovements() {
     }
 
     const movements = Array.isArray(result) ? result : [];
-    movementListCopy.textContent = `${movements.length} movimento${movements.length === 1 ? '' : 's'} encontrado${movements.length === 1 ? '' : 's'}.`;
+    updateMovementCount(movements.length);
     renderMovements(movements);
   } catch (error) {
     movementListTitle.textContent = 'Nao foi possivel carregar';

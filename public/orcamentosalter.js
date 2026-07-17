@@ -21,14 +21,10 @@ function showResult(message, hasError) {
   budgetUpdateResult.classList.toggle('api-result-error', hasError);
 }
 
-function formatDecimal(value) {
-  return Number(value).toFixed(2);
-}
-
 function validateBudgetFields() {
   const dsCategoria = dsCategoriaInput.value.trim();
   const diaCorte = Number(diaCorteInput.value);
-  const valorMeta = Number(valorMetaInput.value);
+  const valorMeta = MoneyInput.toNumber(valorMetaInput);
 
   if (!idOrcamentoInput.value) {
     showResult('Nao foi possivel identificar o orcamento.', true);
@@ -57,7 +53,7 @@ function validateBudgetFields() {
     idOrcamento: idOrcamentoInput.value,
     dsCategoria,
     diaCorte: String(diaCorte),
-    valorMeta: formatDecimal(valorMeta)
+    valorMeta: MoneyInput.toDecimalString(valorMetaInput)
   };
 }
 
@@ -94,6 +90,7 @@ if (!storedSession) {
   dsCategoriaInput.value = params.get('dsCategoria') || '';
   diaCorteInput.value = params.get('diaCorte') || '';
   valorMetaInput.value = params.get('valorMeta') || '';
+  MoneyInput.attach(valorMetaInput);
 
   if (!idOrcamentoInput.value) {
     showResult('Nao foi possivel identificar o orcamento.', true);

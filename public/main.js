@@ -308,6 +308,41 @@ function createBudgetAmount(label, value, icon, isNegative = false) {
   return item;
 }
 
+function createBudgetProgress(valorTotal, saldoRestante) {
+  const wrapper = document.createElement('div');
+  wrapper.className = 'budget-progress';
+
+  if (valorTotal <= 0) {
+    wrapper.append(createTextElement('span', 'budget-progress-label', 'Meta sem valor'));
+    return wrapper;
+  }
+
+  const remainingPercent = Math.max(0, Math.min(100, (saldoRestante / valorTotal) * 100));
+  const roundedPercent = Math.round(remainingPercent);
+  const isExceeded = saldoRestante < 0;
+  const bar = document.createElement('div');
+  const fill = document.createElement('span');
+
+  wrapper.classList.toggle('is-exceeded', isExceeded);
+  bar.className = 'budget-progress-bar';
+  bar.setAttribute('role', 'progressbar');
+  bar.setAttribute('aria-label', 'Percentual restante ate o limite da meta');
+  bar.setAttribute('aria-valuemin', '0');
+  bar.setAttribute('aria-valuemax', '100');
+  bar.setAttribute('aria-valuenow', String(roundedPercent));
+
+  fill.className = 'budget-progress-fill';
+  fill.style.width = `${remainingPercent}%`;
+  bar.append(fill);
+
+  wrapper.append(
+    createTextElement('span', 'budget-progress-label', isExceeded ? 'Limite ultrapassado' : `${roundedPercent}% livre`),
+    bar
+  );
+
+  return wrapper;
+}
+
 function renderBudgets(group) {
   const budgets = group?.orcamentos || [];
   const isAdmin = group?.admin === 'S';
@@ -343,6 +378,13 @@ function renderBudgets(group) {
     const valorTotal = getNumericValue(budget.valor_meta ?? budget.valorMeta);
     const valorGasto = getNumericValue(budget.valor_gasto ?? budget.valorGasto);
     const saldoRestante = valorTotal - valorGasto;
+    const titleRow = document.createElement('div');
+    titleRow.className = 'budget-title-row';
+    titleRow.append(
+      createTextElement('h3', '', budget.ds_categoria || budget.dsCategoria || 'Categoria sem nome'),
+      createBudgetProgress(valorTotal, saldoRestante)
+    );
+
     const amounts = document.createElement('div');
     amounts.className = 'budget-values-grid';
     amounts.append(
@@ -351,16 +393,22 @@ function renderBudgets(group) {
       createBudgetAmount('Saldo Restante', saldoRestante, saldoRestante < 0 ? '⚠️' : '✅', saldoRestante < 0)
     );
 
+    const budgetIdSection = document.createElement('div');
+    budgetIdSection.className = 'budget-id-section';
+    budgetIdSection.append(
+      createTextElement('div', 'budget-divider', ''),
+      createTextElement('p', 'budget-meta', 'ID do orcamento'),
+      createTextElement('p', 'budget-id', budget.id_orcamento || budget.idOrcamento || '-')
+    );
+
     card.append(
       top,
-      createTextElement('h3', '', budget.ds_categoria || budget.dsCategoria || 'Categoria sem nome'),
+      titleRow,
       amounts,
       createTextElement('div', 'budget-divider', ''),
       createTextElement('p', 'budget-meta', 'Dia de corte'),
       createTextElement('p', 'budget-id', budget.nr_dia_corte || budget.diaCorte || '-'),
-      createTextElement('div', 'budget-divider', ''),
-      createTextElement('p', 'budget-meta', 'ID do orcamento'),
-      createTextElement('p', 'budget-id', budget.id_orcamento || budget.idOrcamento || '-')
+      budgetIdSection
     );
 
     budgetsGrid.append(card);

@@ -25,13 +25,13 @@
           <div class="group-input-shell">
             <span class="group-input-icon" aria-hidden="true">R$</span>
             <input
-              type="number"
+              type="text"
               id="valor"
               name="valor"
               required
-              min="0.01"
-              step="0.01"
-              inputmode="decimal"
+              inputmode="numeric"
+              autocomplete="off"
+              maxlength="16"
               placeholder="Ex.: 350,00"
             />
           </div>
@@ -61,6 +61,7 @@
       </section>
     </main>
 
+    <script src="/moneyInput.js" defer></script>
     <script src="/movimentos.js" defer></script>
   </body>
 </html>

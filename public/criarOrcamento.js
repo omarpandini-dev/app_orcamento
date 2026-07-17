@@ -23,10 +23,6 @@ function showResult(message, hasError) {
   createBudgetActions.hidden = hasError;
 }
 
-function formatDecimal(value) {
-  return Number(value).toFixed(2);
-}
-
 if (!storedSession) {
   window.location.href = '/';
 } else {
@@ -40,6 +36,8 @@ if (!storedSession) {
   }
 }
 
+MoneyInput.attach(valorMetaInput);
+
 createBudgetForm.addEventListener('submit', async (event) => {
   event.preventDefault();
 
@@ -47,7 +45,7 @@ createBudgetForm.addEventListener('submit', async (event) => {
   const idUsuario = idUsuarioInput.value;
   const dsCategoria = dsCategoriaInput.value.trim();
   const diaCorte = Number(diaCorteInput.value);
-  const valorMeta = Number(valorMetaInput.value);
+  const valorMeta = MoneyInput.toNumber(valorMetaInput);
 
   if (!dsCategoria) {
     showResult('Informe a categoria.', true);
@@ -82,7 +80,7 @@ createBudgetForm.addEventListener('submit', async (event) => {
         idUsuario,
         dsCategoria,
         diaCorte: String(diaCorte),
-        valorMeta: formatDecimal(valorMeta)
+        valorMeta: MoneyInput.toDecimalString(valorMetaInput)
       })
     });
 

@@ -21,10 +21,6 @@ function showResult(message, hasError) {
   movementResult.classList.toggle('api-result-error', hasError);
 }
 
-function formatDecimal(value) {
-  return Number(value).toFixed(2);
-}
-
 if (!storedSession) {
   window.location.href = '/';
 } else {
@@ -44,12 +40,14 @@ if (!storedSession) {
   }
 }
 
+MoneyInput.attach(valorInput);
+
 movementForm.addEventListener('submit', async (event) => {
   event.preventDefault();
 
   const idOrcamento = idOrcamentoInput.value;
   const idUsuario = idUsuarioInput.value;
-  const valor = Number(valorInput.value);
+  const valor = MoneyInput.toNumber(valorInput);
   const descricao = descricaoInput.value.trim();
 
   if (!idOrcamento || !idUsuario) {
@@ -81,7 +79,7 @@ movementForm.addEventListener('submit', async (event) => {
       body: JSON.stringify({
         idOrcamento,
         idUsuario,
-        valor: formatDecimal(valor),
+        valor: MoneyInput.toDecimalString(valorInput),
         descricao
       })
     });

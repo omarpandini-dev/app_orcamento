@@ -510,6 +510,61 @@ const server = http.createServer((request, response) => {
     return;
   }
 
+  if (request.method === 'POST' && requestUrl.pathname === '/api/exclui-movimento') {
+    readJsonBody(request)
+      .then(async (payload) => {
+        if (!payload.idMovimento) {
+          sendJson(response, 400, { error: 'Campo obrigatorio ausente: idMovimento' });
+          return;
+        }
+
+        if (!createGroupWebhookUrl || !createGroupWebhookAuthorization) {
+          sendJson(response, 500, {
+            error: 'CREATE_GROUP_WEBHOOK_URL e CREATE_GROUP_WEBHOOK_AUTHORIZATION precisam estar configurados no servidor.'
+          });
+          return;
+        }
+
+        const webhookResponse = await fetch(createGroupWebhookUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': createGroupWebhookAuthorization
+          },
+          body: JSON.stringify({
+            operacao: 'EXCLUI_MOVIMENTO',
+            idMovimento: payload.idMovimento
+          })
+        });
+
+        const responseText = await webhookResponse.text();
+        let responseData;
+
+        try {
+          responseData = responseText ? JSON.parse(responseText) : null;
+        } catch (error) {
+          responseData = responseText;
+        }
+
+        if (!webhookResponse.ok) {
+          sendJson(response, webhookResponse.status, {
+            error: 'Falha ao excluir movimento.',
+            details: responseData
+          });
+          return;
+        }
+
+        sendJson(response, 200, responseData);
+      })
+      .catch((error) => {
+        const statusCode = error instanceof SyntaxError ? 400 : 500;
+        sendJson(response, statusCode, {
+          error: statusCode === 400 ? 'JSON invalido.' : 'Erro interno ao excluir movimento.'
+        });
+      });
+    return;
+  }
+
   if (request.method === 'POST' && requestUrl.pathname === '/api/busca-movimentos') {
     readJsonBody(request)
       .then(async (payload) => {
