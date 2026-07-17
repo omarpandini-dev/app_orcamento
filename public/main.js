@@ -37,6 +37,35 @@ function getNumericValue(value) {
   return Number(value) || 0;
 }
 
+function formatDays(value) {
+  const days = Number(value) || 0;
+  return `${days} dia${days === 1 ? '' : 's'}`;
+}
+
+function getDaysRemainingUntilCutoff(cutoffDay, referenceDate = new Date()) {
+  const parsedCutoffDay = Number(cutoffDay);
+
+  if (!Number.isFinite(parsedCutoffDay) || parsedCutoffDay <= 0) {
+    return 0;
+  }
+
+  const today = new Date(referenceDate.getFullYear(), referenceDate.getMonth(), referenceDate.getDate());
+  const createCutoffDate = (year, month) => {
+    const lastDayOfMonth = new Date(year, month + 1, 0).getDate();
+    const safeCutoffDay = Math.min(Math.trunc(parsedCutoffDay), lastDayOfMonth);
+    return new Date(year, month, safeCutoffDay);
+  };
+
+  let cutoffDate = createCutoffDate(today.getFullYear(), today.getMonth());
+
+  if (cutoffDate < today) {
+    cutoffDate = createCutoffDate(today.getFullYear(), today.getMonth() + 1);
+  }
+
+  const millisecondsPerDay = 24 * 60 * 60 * 1000;
+  return Math.round((cutoffDate - today) / millisecondsPerDay) + 1;
+}
+
 function createTextElement(tagName, className, text) {
   const element = document.createElement(tagName);
   element.className = className;
@@ -289,7 +318,7 @@ function renderNoBudgetsState(group) {
   budgetsGrid.append(card);
 }
 
-function createBudgetAmount(label, value, icon, isNegative = false) {
+function createBudgetAmount(label, value, icon, isNegative = false, formatter = formatCurrency) {
   const item = document.createElement('div');
   item.className = `budget-amount${isNegative ? ' is-negative' : ''}`;
 
@@ -302,7 +331,7 @@ function createBudgetAmount(label, value, icon, isNegative = false) {
 
   item.append(
     header,
-    createTextElement('p', `budget-value${isNegative ? ' is-negative' : ''}`, formatCurrency(value))
+    createTextElement('p', `budget-value${isNegative ? ' is-negative' : ''}`, formatter(value))
   );
 
   return item;
@@ -378,6 +407,9 @@ function renderBudgets(group) {
     const valorTotal = getNumericValue(budget.valor_meta ?? budget.valorMeta);
     const valorGasto = getNumericValue(budget.valor_gasto ?? budget.valorGasto);
     const saldoRestante = valorTotal - valorGasto;
+    const diaCorte = budget.nr_dia_corte || budget.diaCorte;
+    const diasRestantes = getDaysRemainingUntilCutoff(diaCorte);
+    const cotaDiaria = diasRestantes > 0 ? saldoRestante / diasRestantes : 0;
     const titleRow = document.createElement('div');
     titleRow.className = 'budget-title-row';
     titleRow.append(
@@ -390,7 +422,9 @@ function renderBudgets(group) {
     amounts.append(
       createBudgetAmount('Valor Total', valorTotal, '🎯'),
       createBudgetAmount('Valor Gasto', valorGasto, '💸'),
-      createBudgetAmount('Saldo Restante', saldoRestante, saldoRestante < 0 ? '⚠️' : '✅', saldoRestante < 0)
+      createBudgetAmount('Saldo Restante', saldoRestante, saldoRestante < 0 ? '⚠️' : '✅', saldoRestante < 0),
+      createBudgetAmount('Dias Restantes', diasRestantes, '📅', false, formatDays),
+      createBudgetAmount('Cota Diária', cotaDiaria, '📌', cotaDiaria < 0)
     );
 
     const budgetIdSection = document.createElement('div');
